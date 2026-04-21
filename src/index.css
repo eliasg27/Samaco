@@ -1,0 +1,136 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-primary: #1B4F8C;
+  --color-accent: #E8593C;
+  --color-bg-soft: #f8fafc;
+  --color-border-subtle: #e2e8f0;
+  --shadow-custom: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+@layer base {
+  body {
+    @apply bg-bg-soft text-slate-800 font-sans antialiased;
+  }
+}
+
+/* ===== SCROLLBAR ===== */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ===== RANGE INPUTS ===== */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 4px;
+  background: #e2e8f0;
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #1B4F8C;
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  border-color: #E8593C;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #1B4F8C;
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  cursor: pointer;
+}
+
+/* ===== DUAL RANGE SLIDER ===== */
+.dual-range-wrap {
+  position: relative;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  margin: 14px 0 8px;
+}
+.dual-range-fill {
+  position: absolute;
+  height: 100%;
+  background: #1B4F8C;
+  border-radius: 4px;
+  pointer-events: none;
+}
+.dual-range-wrap input[type="range"] {
+  position: absolute;
+  width: 100%;
+  top: -7px;
+  background: transparent;
+  pointer-events: none;
+}
+.dual-range-wrap input[type="range"]::-webkit-slider-thumb { pointer-events: all; }
+.dual-range-wrap input[type="range"]::-moz-range-thumb    { pointer-events: all; }
+
+/* ===== PRICE TOOLTIP ===== */
+.price-tooltip { position: relative; display: inline-flex; }
+.price-tooltip-content {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  background: #1e293b;
+  color: white;
+  font-size: 11px;
+  line-height: 1.55;
+  padding: 12px 14px;
+  border-radius: 12px;
+  width: 248px;
+  z-index: 200;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+}
+.price-tooltip-content::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  right: 14px;
+  border: 6px solid transparent;
+  border-top-color: #1e293b;
+}
+.price-tooltip:hover .price-tooltip-content { display: block; }
+
+/* ===== HERO SLIDER ===== */
+.hero-slide { transition: opacity 0.75s ease-in-out; }
+
+/* ===== FOCUS RINGS (accessibility) ===== */
+button:focus-visible, a:focus-visible,
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid #1B4F8C;
+  outline-offset: 2px;
+}
+
+/* ===== PRODUCT CARD IMAGE ZOOM ===== */
+.product-img-wrap { overflow: hidden; }
+.product-img-wrap img { transition: transform 0.35s ease; }
+.product-img-wrap:hover img { transform: scale(1.08); }
+
+/* ===== ANIMATIONS ===== */
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.cart-drawer-enter { animation: slideInRight 0.3s ease forwards; }
+.cart-overlay-enter { animation: fadeInOverlay 0.3s ease forwards; }
