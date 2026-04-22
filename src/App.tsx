@@ -58,29 +58,46 @@ const WHY_SAMACO = [
 const BRANDS_LIST = ['FV', 'Roca', 'Eskabe', 'Elizabeth', 'RDAU', 'Genebre', 'Dune', 'Peirano', 'Ferrum', 'Casal'];
 
 const MEGA_MENU: Record<string, string[]> = {
-  'Grifería':               ['Monocomandos', 'Duchas', 'Grifería de Baño', 'Grifería de Cocina', 'Accesorios', 'Repuestos'],
-  'Pisos y Revestimientos': ['Porcelanatos', 'Cerámicas', 'Revestimientos de Pared', 'Zócalos', 'Terminaciones'],
-  'Sanitarios':             ['Inodoros', 'Bidets', 'Lavatorios', 'Bañeras', 'Vanitorios', 'Bachas de Cocina'],
-  'Obra Gruesa':            ['Cemento y Cal', 'Hierro y Acero', 'Bloques y Ladrillos', 'Morteros', 'Impermeabilizantes'],
-  'Instalaciones':          ['Plomería', 'Gas', 'Electricidad', 'Calefacción', 'Herramientas'],
-  'Hogar':                  ['Muebles de Baño', 'Decoración', 'Iluminación', 'Organizadores'],
-  'Pinturas':               ['Látex Interior', 'Látex Exterior', 'Esmaltes', 'Fondos y Selladores'],
+  'Obra Gruesa':            ['Cemento y Cal', 'Hierro y Acero', 'Bloques y Ladrillos', 'Morteros y Revoques', 'Impermeabilizantes', 'Áridos'],
+  'Pinturas':               ['Látex Interior', 'Látex Exterior', 'Esmaltes', 'Fondos y Selladores', 'Impermeabilizantes Líquidos'],
+  'Instalaciones':          ['Plomería', 'Termotanques', 'Gas', 'Electricidad', 'Calefacción'],
+  'Herramientas':           ['Amoladoras', 'Taladros', 'Sierras y Cierras', 'Fijación y Anclaje', 'Medición', 'Herramientas de Mano'],
+  'Pisos y Revestimientos': ['Porcelanatos', 'Cerámicas', 'Revestimientos de Pared', 'Zócalos', 'Pegamentos y Juntas'],
+  'Grifería':               ['Monocomandos', 'Duchas', 'Grifería de Cocina', 'Accesorios de Baño', 'Repuestos'],
+  'Sanitarios':             ['Inodoros', 'Bidets', 'Lavatorios', 'Vanitorios', 'Bachas de Cocina'],
   'Ofertas':                ['Ofertas del Mes', 'Liquidación de Stock', 'Productos de Temporada'],
 };
 
 const MOCK_REVIEWS: Record<string, Review[]> = {
-  'VL-001': [
-    { id: 1, rating: 5, userName: 'Carlos M.',  date: '15 de Marzo, 2025',  title: 'Excelente calidad y acabado',   comment: 'Instalé este monocomando en mi baño nuevo y quedé encantado. El acabado cromado es impecable y el cierre cerámico es muy suave. Fácil de instalar, el agua fluye perfecto. Muy recomendado.' },
-    { id: 2, rating: 5, userName: 'Ana P.',      date: '2 de Febrero, 2025', title: 'Muy buena compra',              comment: 'Llegó en tiempo y en perfecto estado. La calidad es notable para el precio. Ya lo instalé y funciona fenomenal. El despacho de Samaco muy rápido.' },
-    { id: 3, rating: 4, userName: 'Diego R.',    date: '18 de Enero, 2025',  title: 'Sólido y bien terminado',       comment: 'Buen producto, la rosca entra perfecta y el cromo no se raya. Le doy 4 estrellas porque las instrucciones podrían ser más claras, pero en general muy conforme.' },
+  'CM-LN50': [
+    { id: 1, rating: 5, userName: 'Gustavo P.',   date: '8 de Abril, 2025',    title: 'El cemento de siempre, calidad garantizada', comment: 'Compré 40 bolsas para la losa del garage. Fragua perfecta y uniforme. Siempre uso Loma Negra y nunca me falló. En Samaco lo consigo siempre con stock.' },
+    { id: 2, rating: 5, userName: 'Ramón D.',      date: '12 de Marzo, 2025',  title: 'Excelente relación calidad-precio',          comment: 'Para construcción en seco o húmedo, este cemento es el mejor del mercado. Lo compré en pallet para mi casa nueva y la resistencia es perfecta.' },
+    { id: 3, rating: 4, userName: 'Facundo A.',    date: '25 de Enero, 2025',  title: 'Muy bueno, entrega puntual',                 comment: 'Samaco lo trajo a obra en el día acordado. Las bolsas vienen bien cerradas, sin humedad. Solo bajé una estrella porque 2 bolsas venían un poco rotas del transporte.' },
   ],
-  'BS-021': [
-    { id: 1, rating: 5, userName: 'Marcela G.', date: '10 de Abril, 2025',  title: 'Calidad de primera',            comment: 'El bidet Peirano es de excelente calidad. La loza es muy resistente y el diseño es clásico y elegante. Combina perfecto con el inodoro de la misma línea.' },
-    { id: 2, rating: 5, userName: 'Roberto S.', date: '5 de Marzo, 2025',   title: 'Perfecto para renovar el baño', comment: 'Compré el juego completo Santander y quedé muy conforme. La atención en Samaco fue excelente y el envío fue rápido.' },
+  'HR-AC12': [
+    { id: 1, rating: 5, userName: 'Sebastián M.', date: '3 de Abril, 2025',   title: 'Hierro de primera, sin vuelta',              comment: 'Acindar siempre es calidad. Lo usé para columnas y vigas de mi casa. El corrugado agarra perfecto con el hormigón. Samaco lo entregó en obra sin problema.' },
+    { id: 2, rating: 5, userName: 'Jorge L.',      date: '18 de Febrero, 2025',title: 'Material garantizado',                       comment: 'El hierro viene derecho y sin oxidación. Para el precio que tiene en Samaco, imposible conseguirlo más barato. Muy conformes.' },
+  ],
+  'PT-TE20': [
+    { id: 1, rating: 5, userName: 'Verónica H.',  date: '5 de Abril, 2025',   title: 'Cubre increíble, rinde mucho',               comment: 'Pinté la fachada entera con 2 baldes de 20 litros. La cobertura es impresionante y el color quedó parejo. Ya pasó el verano y sigue como el primer día.' },
+    { id: 2, rating: 4, userName: 'Miguel T.',     date: '14 de Marzo, 2025',  title: 'Muy buena pintura exterior',                 comment: 'Relación calidad precio excelente. Tersuave siempre entrega. El descuento que tiene en Samaco hace que sea muy conveniente.' },
+  ],
+  'TT-RH80': [
+    { id: 1, rating: 5, userName: 'Pablo N.',      date: '10 de Abril, 2025',  title: 'Rheem es lo mejor del mercado',              comment: 'Lo instalé hace 3 meses y funciona impecable. Agua caliente rápido y mantiene la temperatura perfecta. La garantía de 7 años da mucha tranquilidad.' },
+    { id: 2, rating: 5, userName: 'Claudia R.',    date: '22 de Febrero, 2025',title: 'Excelente producto',                         comment: 'Reemplazamos el termotanque viejo y la diferencia es enorme. Mucho más eficiente y silencioso. Samaco nos lo instaló mismo día de la compra.' },
+  ],
+  'AM-BOS9': [
+    { id: 1, rating: 5, userName: 'Ariel G.',      date: '1 de Abril, 2025',   title: 'Herramienta profesional de verdad',          comment: 'Tengo la amoladora hace 2 meses y la uso todos los días en obra. Potente, bien equilibrada y el freno electrónico es una maravilla para la seguridad.' },
+    { id: 2, rating: 5, userName: 'Matías C.',     date: '7 de Marzo, 2025',   title: 'Bosch siempre cumple',                       comment: 'La compré para trabajos pesados de corte y esmerilado. La diferencia con marcas genéricas es enorme. Vale cada peso.' },
+  ],
+  'VL-001': [
+    { id: 1, rating: 5, userName: 'Carlos M.',    date: '15 de Marzo, 2025',  title: 'Excelente calidad y acabado',                comment: 'Instalé este monocomando en mi baño nuevo y quedé encantado. El acabado cromado es impecable y el cierre cerámico es muy suave. Fácil de instalar.' },
+    { id: 2, rating: 5, userName: 'Ana P.',        date: '2 de Febrero, 2025', title: 'Muy buena compra',                           comment: 'Llegó en tiempo y en perfecto estado. La calidad es notable para el precio. Ya lo instalé y funciona fenomenal.' },
+    { id: 3, rating: 4, userName: 'Diego R.',      date: '18 de Enero, 2025',  title: 'Sólido y bien terminado',                    comment: 'Buen producto, la rosca entra perfecta y el cromo no se raya. En general muy conforme.' },
   ],
   'PD-060': [
-    { id: 1, rating: 5, userName: 'Lucía F.',   date: '20 de Marzo, 2025',  title: 'Precioso, queda espectacular',  comment: 'El porcelanato oscuro le dio una personalidad increíble a mi sala. El rectificado es perfecto, las juntas quedan mínimas. Muy recomendado.' },
-    { id: 2, rating: 4, userName: 'Horacio T.', date: '1 de Febrero, 2025', title: 'Muy buen producto',             comment: 'Calidad de primera, el color es uniforme y muy lindo. Bajé una estrella porque 2 piezas llegaron con un leve defecto, pero Samaco las cambió sin problema.' },
+    { id: 1, rating: 5, userName: 'Lucía F.',     date: '20 de Marzo, 2025',  title: 'Precioso, queda espectacular',               comment: 'El porcelanato oscuro le dio una personalidad increíble a mi sala. El rectificado es perfecto, las juntas quedan mínimas.' },
+    { id: 2, rating: 4, userName: 'Horacio T.',    date: '1 de Febrero, 2025', title: 'Muy buen producto',                          comment: 'Calidad de primera, el color es uniforme y muy lindo. Samaco lo cambió sin problema el material que llegó con defecto.' },
   ],
 };
 
