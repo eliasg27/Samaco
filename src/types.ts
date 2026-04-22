@@ -21,7 +21,7 @@ export interface Product {
   isFeatured?: boolean;
 }
 
-export type View = 'home' | 'category' | 'product';
+export type View = 'home' | 'category' | 'product' | 'calculadora' | 'sucursales';
 
 export interface Category {
   id: string;

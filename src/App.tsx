@@ -3,7 +3,8 @@ import {
   Search, ShoppingCart, Heart, User, ChevronRight, ChevronLeft, ChevronDown,
   Truck, Package, Plus, Minus, Check, Clock, CreditCard, Building2,
   Star, ArrowRight, Menu, X, Phone, MapPin, Mail, Info, Trash2,
-  Shield, Instagram, Facebook, Twitter, Archive, Zap,
+  Shield, Instagram, Facebook, Twitter, Archive, Zap, Calculator,
+  Layers, Navigation,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { View, Product, CartItem, Review } from './types';
@@ -101,6 +102,99 @@ const MOCK_REVIEWS: Record<string, Review[]> = {
   ],
 };
 
+const KITS = [
+  {
+    id: 'kit-losa',    name: 'Kit Losa 50m²',
+    icon: '🏗️',
+    description: 'Cemento, hierro y bloques para una losa de 50m².',
+    badge: 'Más vendido',
+    color: 'from-slate-700 to-slate-500',
+    skus: ['CM-LN50', 'HR-AC12', 'BL-H100'],
+  },
+  {
+    id: 'kit-pintura',
+    name: 'Kit Pintura Exterior',
+    icon: '🎨',
+    description: 'Látex premium + fijador para 100m² de fachada.',
+    badge: '12% ahorro',
+    color: 'from-[#E8593C] to-orange-400',
+    skus: ['PT-TE20', 'FJ-PX4'],
+  },
+  {
+    id: 'kit-bano',
+    name: 'Kit Baño Completo',
+    icon: '🚿',
+    description: 'Grifería, ducha y porcelanato para renovar un baño.',
+    badge: 'Popular',
+    color: 'from-[#1B4F8C] to-blue-400',
+    skus: ['VL-001', 'DR-L20', 'PD-060'],
+  },
+  {
+    id: 'kit-plomeria',
+    name: 'Kit Agua Caliente',
+    icon: '🔧',
+    description: 'Termotanque Rheem 80L + caños PVC para ACS.',
+    badge: 'Nuevo',
+    color: 'from-emerald-700 to-emerald-500',
+    skus: ['TT-RH80', 'PV-TG1'],
+  },
+];
+
+const SUCURSALES = [
+  {
+    id: 'central',
+    name: 'Casa Central',
+    address: 'Av. San Martín 1234, Godoy Cruz',
+    phone: '(0261) 555-0001',
+    hours: 'Lun–Vie 8:00–18:00 / Sáb 8:00–13:00',
+    email: 'central@samacoonline.com.ar',
+    mapUrl: 'https://maps.google.com/?q=Godoy+Cruz,+Mendoza,+Argentina',
+    icon: '🏢',
+    color: 'bg-[#1B4F8C]',
+    description: 'Sede principal con el mayor showroom y stock. Equipo de asesores técnicos especializados.',
+    features: ['Showroom 800m²', 'Estacionamiento propio', 'Asesoramiento técnico', 'Acopio de materiales'],
+  },
+  {
+    id: 'lujan',
+    name: 'Luján de Cuyo',
+    address: 'Acceso Sur km 12.5, Luján de Cuyo',
+    phone: '(0261) 555-0002',
+    hours: 'Lun–Vie 8:00–18:00 / Sáb 8:00–13:00',
+    email: 'lujan@samacoonline.com.ar',
+    mapUrl: 'https://maps.google.com/?q=Lujan+de+Cuyo,+Mendoza,+Argentina',
+    icon: '🏗️',
+    color: 'bg-emerald-600',
+    description: 'Especializada en obra gruesa y materiales pesados. Logística de entrega en zona sur.',
+    features: ['Grandes volúmenes', 'Entrega zona sur', 'Hormigón elaborado', 'Autoelevador'],
+  },
+  {
+    id: 'ecosamaco',
+    name: 'Ecosamaco',
+    address: 'Ruta 40 Norte 500, Las Heras',
+    phone: '(0261) 555-0003',
+    hours: 'Lun–Vie 8:00–17:00 / Sáb 8:00–12:00',
+    email: 'ecosamaco@samacoonline.com.ar',
+    mapUrl: 'https://maps.google.com/?q=Las+Heras,+Mendoza,+Argentina',
+    icon: '🌿',
+    color: 'bg-green-600',
+    description: 'Materiales sustentables y construcción ecológica. Paneles solares y sistemas bioclimáticos.',
+    features: ['Materiales sustentables', 'Paneles solares', 'Construcción en seco', 'Asesoramiento eco'],
+  },
+  {
+    id: 'instalaciones',
+    name: 'Samaco Instalaciones',
+    address: 'Mitre 890, Ciudad de Mendoza',
+    phone: '(0261) 555-0004',
+    hours: 'Lun–Vie 8:00–18:00 / Sáb 9:00–13:00',
+    email: 'instalaciones@samacoonline.com.ar',
+    mapUrl: 'https://maps.google.com/?q=Ciudad+de+Mendoza,+Argentina',
+    icon: '🔧',
+    color: 'bg-[#E8593C]',
+    description: 'Todo en plomería, electricidad y calefacción. Instaladores matriculados disponibles.',
+    features: ['Plomería y sanitarios', 'Electricidad', 'Calefacción y AC', 'Instaladores matriculados'],
+  },
+];
+
 // ─────────────────────────────────────────────
 // UTILS
 // ─────────────────────────────────────────────
@@ -147,9 +241,11 @@ interface ProductCardProps {
   onAddToCart: (p: Product) => void;
   isFavorite: boolean;
   onToggleFavorite: (id: string) => void;
+  isComparing?: boolean;
+  onToggleCompare?: (id: string) => void;
 }
 
-const ProductCard = ({ product, onClick, onAddToCart, isFavorite, onToggleFavorite }: ProductCardProps) => (
+const ProductCard = ({ product, onClick, onAddToCart, isFavorite, onToggleFavorite, isComparing = false, onToggleCompare }: ProductCardProps) => (
   <motion.article
     whileHover={{ y: -4, boxShadow: '0 16px 48px rgba(0,0,0,0.12)' }}
     transition={{ duration: 0.2 }}
@@ -201,14 +297,26 @@ const ProductCard = ({ product, onClick, onAddToCart, isFavorite, onToggleFavori
         </p>
         <p className="text-[10px] text-slate-400 line-through">{fmt(product.listPrice)}</p>
       </div>
-      <button
-        onClick={e => { e.stopPropagation(); onAddToCart(product); }}
-        disabled={product.stockStatus === 'out_of_stock'}
-        className="w-full py-2.5 bg-[#1B4F8C] hover:bg-[#163f70] disabled:bg-slate-200 disabled:text-slate-400 text-white text-[11px] font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
-      >
-        <ShoppingCart className="w-3.5 h-3.5" />
-        {product.stockStatus === 'out_of_stock' ? 'Sin stock' : 'Agregar al carrito'}
-      </button>
+      <div className="flex gap-2">
+        <button
+          onClick={e => { e.stopPropagation(); onAddToCart(product); }}
+          disabled={product.stockStatus === 'out_of_stock'}
+          className="flex-1 py-2.5 bg-[#1B4F8C] hover:bg-[#163f70] disabled:bg-slate-200 disabled:text-slate-400 text-white text-[11px] font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
+        >
+          <ShoppingCart className="w-3.5 h-3.5" />
+          {product.stockStatus === 'out_of_stock' ? 'Sin stock' : 'Agregar'}
+        </button>
+        {onToggleCompare && (
+          <button
+            onClick={e => { e.stopPropagation(); onToggleCompare(product.id); }}
+            title="Comparar producto"
+            className={`px-2.5 rounded-xl border-2 transition-all text-[10px] font-bold
+              ${isComparing ? 'bg-[#1B4F8C] border-[#1B4F8C] text-white' : 'border-slate-200 text-slate-400 hover:border-[#1B4F8C] hover:text-[#1B4F8C]'}`}
+          >
+            <Layers className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
     </div>
   </motion.article>
 );
@@ -299,6 +407,17 @@ const MiniCart = ({ isOpen, onClose, cartItems, onUpdate, onRemove }: MiniCartPr
                 <button className="w-full py-4 bg-[#E8593C] hover:bg-[#d14a2f] text-white font-black rounded-2xl transition-colors text-sm shadow-lg">
                   Ir a pagar
                 </button>
+                <a
+                  href={`https://wa.me/5492615555555?text=${encodeURIComponent(
+                    'Hola Samaco! Quiero consultar disponibilidad y coordinar entrega:\n\n' +
+                    cartItems.map(i => `• ${i.product.name} (x${i.quantity}) — ${fmt(i.product.cashPrice * i.quantity)}`).join('\n') +
+                    `\n\nTotal estimado: ${fmt(total)}\n\n¿Pueden confirmar stock?`
+                  )}`}
+                  target="_blank" rel="noreferrer"
+                  className="w-full py-3 bg-[#25D366] hover:bg-[#1ebe58] text-white font-black rounded-2xl transition-colors text-sm flex items-center justify-center gap-2"
+                >
+                  <Phone className="w-4 h-4" />Pedir presupuesto por WhatsApp
+                </a>
                 <button onClick={onClose} className="w-full py-3 border-2 border-slate-200 hover:border-[#1B4F8C] text-slate-700 font-bold rounded-2xl transition-colors text-sm">
                   Seguir comprando
                 </button>
@@ -518,6 +637,19 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
                   </button>
                 ))}
               </div>
+              <div className="border-t border-slate-100 pt-2 pb-2">
+                <p className="px-5 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 pt-2">Herramientas</p>
+                <button onClick={() => { navigateTo('calculadora'); setMobileOpen(false); }}
+                  className="w-full flex items-center gap-3 px-5 py-3 hover:bg-slate-50 transition-colors text-left">
+                  <Calculator className="w-5 h-5 text-[#1B4F8C]" />
+                  <span className="font-semibold text-sm text-slate-700">Calculadora de materiales</span>
+                </button>
+                <button onClick={() => { navigateTo('sucursales'); setMobileOpen(false); }}
+                  className="w-full flex items-center gap-3 px-5 py-3 hover:bg-slate-50 transition-colors text-left">
+                  <MapPin className="w-5 h-5 text-[#1B4F8C]" />
+                  <span className="font-semibold text-sm text-slate-700">Nuestras sucursales</span>
+                </button>
+              </div>
               <div className="border-t border-slate-100 p-5">
                 <a href="https://wa.me/5492615555555" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm font-semibold text-[#25D366]">
                   <Phone className="w-4 h-4" />WhatsApp atención
@@ -566,22 +698,27 @@ const Footer = ({ navigateTo }: { navigateTo: (v: View, p?: Product, c?: string)
           ))}
         </ul>
       </div>
-      {/* Sucursales */}
+      {/* Sucursales + Herramientas */}
       <div>
         <h4 className="font-black text-sm uppercase tracking-widest mb-5 text-slate-300">Sucursales</h4>
-        <ul className="space-y-4">
-          {[
-            { name: 'Casa Central',  addr: 'Av. San Martín 1234, Godoy Cruz' },
-            { name: 'Luján de Cuyo', addr: 'Acceso Sur km 12.5, Luján'       },
-            { name: 'Ecosamaco',     addr: 'Ruta 40 Norte 500, Las Heras'    },
-            { name: 'Instalaciones', addr: 'Mitre 890, Ciudad de Mendoza'    },
-          ].map(s => (
-            <li key={s.name}>
+        <ul className="space-y-3 mb-6">
+          {SUCURSALES.map(s => (
+            <li key={s.id}>
               <p className="text-white text-sm font-bold">{s.name}</p>
-              <p className="text-slate-400 text-xs mt-0.5">{s.addr}</p>
+              <p className="text-slate-400 text-xs mt-0.5">{s.address}</p>
             </li>
           ))}
         </ul>
+        <button onClick={() => navigateTo('sucursales')}
+          className="text-[#E8593C] hover:text-white text-xs font-bold transition-colors flex items-center gap-1">
+          <Navigation className="w-3 h-3" />Ver mapa y horarios →
+        </button>
+        <div className="mt-6">
+          <button onClick={() => navigateTo('calculadora')}
+            className="flex items-center gap-2 text-slate-400 hover:text-white text-sm transition-colors">
+            <Calculator className="w-4 h-4 text-[#E8593C]" />Calculadora de materiales
+          </button>
+        </div>
       </div>
       {/* Contact */}
       <div>
@@ -619,6 +756,8 @@ interface AppCtx {
   addToCart: (p: Product) => void;
   favorites: Set<string>;
   toggleFavorite: (id: string) => void;
+  compareList: string[];
+  toggleCompare: (id: string) => void;
 }
 
 // ─────────────────────────────────────────────
@@ -685,6 +824,25 @@ function HomeView({ ctx }: { ctx: AppCtx }) {
         </div>
       </section>
 
+      {/* ── CALCULADORA CTA ── */}
+      <section className="bg-amber-50 border-b border-amber-100 py-4">
+        <div className="container mx-auto px-4 max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-11 h-11 bg-[#1B4F8C] rounded-xl flex items-center justify-center shrink-0">
+              <Calculator className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <p className="font-black text-slate-800 text-sm">Calculadora de materiales</p>
+              <p className="text-xs text-slate-500">¿Cuánto cemento, pintura o hierro necesitás? Calculalo en segundos.</p>
+            </div>
+          </div>
+          <button onClick={() => navigateTo('calculadora')}
+            className="shrink-0 bg-[#1B4F8C] hover:bg-[#163f70] text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors whitespace-nowrap">
+            Abrir calculadora →
+          </button>
+        </div>
+      </section>
+
       {/* ── VALUE PROPS BAR ── */}
       <section className="bg-[#1B4F8C] text-white py-3.5">
         <div className="container mx-auto px-4 max-w-7xl">
@@ -732,11 +890,57 @@ function HomeView({ ctx }: { ctx: AppCtx }) {
             </button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {PRODUCTS.map(p => (
+            {PRODUCTS.filter(p => p.isFeatured).slice(0, 8).map(p => (
               <ProductCard key={p.id} product={p}
                 onClick={() => navigateTo('product', p)} onAddToCart={addToCart}
-                isFavorite={favorites.has(p.id)} onToggleFavorite={toggleFavorite} />
+                isFavorite={favorites.has(p.id)} onToggleFavorite={toggleFavorite}
+                isComparing={compareList.includes(p.id)} onToggleCompare={toggleCompare} />
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── KITS / PROYECTOS ── */}
+      <section className="py-14 bg-slate-50 border-y border-slate-100">
+        <div className="container mx-auto px-4 md:px-8 max-w-7xl">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <p className="text-[10px] font-black text-[#E8593C] uppercase tracking-widest mb-1">Armá tu obra</p>
+              <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">Kits de productos</h2>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {KITS.map(kit => {
+              const kitProducts = kit.skus.map(sku => PRODUCTS.find(p => p.sku === sku)).filter(Boolean) as Product[];
+              const totalCash = kitProducts.reduce((acc, p) => acc + p.cashPrice, 0);
+              return (
+                <motion.div key={kit.id} whileHover={{ y: -4 }} transition={{ duration: 0.2 }}
+                  className={`relative bg-gradient-to-br ${kit.color} rounded-2xl p-5 text-white overflow-hidden shadow-lg flex flex-col`}>
+                  {kit.badge && (
+                    <span className="absolute top-4 right-4 bg-white/20 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">{kit.badge}</span>
+                  )}
+                  <span className="text-3xl mb-3 block">{kit.icon}</span>
+                  <h3 className="font-black text-base mb-1">{kit.name}</h3>
+                  <p className="text-xs opacity-80 mb-4 leading-relaxed flex-1">{kit.description}</p>
+                  <div className="space-y-1 mb-4">
+                    {kitProducts.map(p => (
+                      <p key={p.id} className="text-[10px] opacity-70 flex items-center gap-1.5">
+                        <span className="w-1 h-1 rounded-full bg-white/60 shrink-0" />
+                        <span className="truncate">{p.name}</span>
+                      </p>
+                    ))}
+                  </div>
+                  <div className="border-t border-white/20 pt-3 mb-3">
+                    <p className="text-[10px] opacity-60 mb-0.5">Precio del kit</p>
+                    <p className="text-xl font-black">{fmt(totalCash)}</p>
+                  </div>
+                  <button onClick={() => kitProducts.forEach(p => addToCart(p))}
+                    className="w-full py-2.5 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-xl transition-colors">
+                    Agregar kit al carrito
+                  </button>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -822,7 +1026,7 @@ function HomeView({ ctx }: { ctx: AppCtx }) {
 // ─────────────────────────────────────────────
 
 function CategoryView({ category, ctx }: { category: string; ctx: AppCtx }) {
-  const { navigateTo, addToCart, favorites, toggleFavorite } = ctx;
+  const { navigateTo, addToCart, favorites, toggleFavorite, compareList, toggleCompare } = ctx;
   const MAX_PRICE = 700000;
 
   const [priceMin,    setPriceMin]    = useState(0);
@@ -834,7 +1038,9 @@ function CategoryView({ category, ctx }: { category: string; ctx: AppCtx }) {
 
   const catData = CATEGORIES.find(c => c.name === category) ?? CATEGORIES[0];
 
-  let products = category ? PRODUCTS.filter(p => p.category === category) : [...PRODUCTS];
+  let products = category === 'Ofertas'
+    ? PRODUCTS.filter(p => p.discount)
+    : category ? PRODUCTS.filter(p => p.category === category) : [...PRODUCTS];
   if (selBrands.length) products = products.filter(p => selBrands.includes(p.brand));
   products = products.filter(p => p.cashPrice >= priceMin && p.cashPrice <= priceMax);
   if (sortBy === 'price_asc')  products = [...products].sort((a,b) => a.cashPrice - b.cashPrice);
@@ -964,7 +1170,8 @@ function CategoryView({ category, ctx }: { category: string; ctx: AppCtx }) {
                 {products.map(p => (
                   <ProductCard key={p.id} product={p}
                     onClick={() => navigateTo('product', p)} onAddToCart={addToCart}
-                    isFavorite={favorites.has(p.id)} onToggleFavorite={toggleFavorite} />
+                    isFavorite={favorites.has(p.id)} onToggleFavorite={toggleFavorite}
+                    isComparing={compareList.includes(p.id)} onToggleCompare={toggleCompare} />
                 ))}
               </div>
             ) : (
@@ -1021,7 +1228,7 @@ interface DetailProps {
 }
 
 function ProductDetailView({ product, ctx, quantity, setQuantity, activeTab, setActiveTab, productReviews, submitReview }: DetailProps) {
-  const { navigateTo, addToCart, favorites, toggleFavorite } = ctx;
+  const { navigateTo, addToCart, favorites, toggleFavorite, compareList, toggleCompare } = ctx;
 
   const [activeImg,  setActiveImg]  = useState(0);
   const [revRating,  setRevRating]  = useState(0);
@@ -1338,7 +1545,8 @@ function ProductDetailView({ product, ctx, quantity, setQuantity, activeTab, set
               {related.map(p => (
                 <ProductCard key={p.id} product={p}
                   onClick={() => { navigateTo('product', p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                  onAddToCart={addToCart} isFavorite={favorites.has(p.id)} onToggleFavorite={toggleFavorite} />
+                  onAddToCart={addToCart} isFavorite={favorites.has(p.id)} onToggleFavorite={toggleFavorite}
+                  isComparing={compareList.includes(p.id)} onToggleCompare={toggleCompare} />
               ))}
             </div>
           </section>
@@ -1349,21 +1557,407 @@ function ProductDetailView({ product, ctx, quantity, setQuantity, activeTab, set
 }
 
 // ─────────────────────────────────────────────
+// CALCULADORA VIEW
+// ─────────────────────────────────────────────
+
+function CalculadoraView({ ctx }: { ctx: AppCtx }) {
+  const { navigateTo } = ctx;
+  type CalcId = 'hormigon' | 'revoque' | 'pintura' | 'pisos' | 'hierro';
+  const [activeCalc, setActiveCalc] = useState<CalcId>('hormigon');
+  const [hLargo,   setHLargo]   = useState(5);
+  const [hAncho,   setHAncho]   = useState(5);
+  const [hEspesor, setHEspesor] = useState(10);
+  const [rSuperficie, setRSuperficie] = useState(50);
+  const [rEspesor,    setREspesor]    = useState(15);
+  const [pSuperficie, setPSuperficie] = useState(80);
+  const [pManos,      setPManos]      = useState(2);
+  const [pisoM2,      setPisoM2]      = useState(30);
+  const [pisoDesperc, setPisoDesperc] = useState(10);
+  const [hierroMetros,   setHierroMetros]   = useState(50);
+  const [hierroDiametro, setHierroDiametro] = useState(12);
+
+  const resHormigon = (() => {
+    const vol = hLargo * hAncho * (hEspesor / 100);
+    return { volumen: vol.toFixed(2), cemento: Math.ceil(vol * 7), arena: (vol * 0.5).toFixed(2), piedra: (vol * 0.7).toFixed(2) };
+  })();
+  const resRevoque  = { bolsas: Math.ceil(rSuperficie * (rEspesor / 15) / 18 * 1.15) };
+  const resPintura  = (() => {
+    const litros = (pSuperficie * pManos) / 4;
+    return { baldes: Math.ceil(litros / 20), litros: litros.toFixed(1), fijador: Math.ceil(pSuperficie / 50) };
+  })();
+  const resPisos  = { m2Total: (pisoM2 * (1 + pisoDesperc / 100)).toFixed(2) };
+  const resHierro = (() => {
+    const kgPorMetro = (hierroDiametro ** 2) * 0.00617;
+    return { barras: Math.ceil(hierroMetros / 12), kgTotal: (hierroMetros * kgPorMetro).toFixed(1), kgPorMetro: kgPorMetro.toFixed(3) };
+  })();
+
+  const calcs = [
+    { id: 'hormigon' as CalcId, label: 'Hormigón', icon: '🏗️' },
+    { id: 'revoque'  as CalcId, label: 'Revoque',  icon: '🧱' },
+    { id: 'pintura'  as CalcId, label: 'Pintura',  icon: '🎨' },
+    { id: 'pisos'    as CalcId, label: 'Pisos',    icon: '⬜' },
+    { id: 'hierro'   as CalcId, label: 'Hierro',   icon: '🔩' },
+  ];
+
+  const Slider = ({ label, val, set, unit, min, max, step }: { label: string; val: number; set: (n:number)=>void; unit: string; min: number; max: number; step: number }) => (
+    <div>
+      <div className="flex justify-between mb-1.5">
+        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{label}</label>
+        <span className="text-sm font-black text-[#1B4F8C]">{val} {unit}</span>
+      </div>
+      <input type="range" min={min} max={max} step={step} value={val}
+        onChange={e => set(+e.target.value)} className="w-full accent-[#1B4F8C]" />
+      <div className="flex justify-between text-[10px] text-slate-300 mt-0.5"><span>{min}{unit}</span><span>{max}{unit}</span></div>
+    </div>
+  );
+
+  const categoryForCalc = activeCalc === 'hierro' || activeCalc === 'hormigon' || activeCalc === 'revoque' ? 'Obra Gruesa' : activeCalc === 'pintura' ? 'Pinturas' : 'Pisos y Revestimientos';
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      <section className="bg-gradient-to-br from-[#0d2a4d] to-[#1B4F8C] py-14 text-white">
+        <div className="container mx-auto px-6 max-w-4xl text-center">
+          <div className="w-16 h-16 bg-[#E8593C] rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Calculator className="w-8 h-8" />
+          </div>
+          <h1 className="text-3xl md:text-4xl font-black mb-3">Calculadora de materiales</h1>
+          <p className="text-slate-300 max-w-xl mx-auto">Calculá exactamente cuánto material necesitás para tu obra. Sin desperdicios, sin faltantes.</p>
+        </div>
+      </section>
+
+      <div className="container mx-auto px-4 max-w-4xl py-10">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar mb-8 pb-1">
+          {calcs.map(c => (
+            <button key={c.id} onClick={() => setActiveCalc(c.id)}
+              className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-sm font-bold whitespace-nowrap transition-all shrink-0
+                ${activeCalc === c.id ? 'bg-[#1B4F8C] text-white shadow-lg' : 'bg-white text-slate-600 border border-slate-200 hover:border-[#1B4F8C]'}`}>
+              <span>{c.icon}</span>{c.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Inputs panel */}
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-xl p-8 space-y-5">
+            <h2 className="font-black text-slate-800 text-xl">
+              {calcs.find(c => c.id === activeCalc)?.icon}{' '}
+              {{hormigon:'Hormigón / Contrapiso', revoque:'Revoque / Mortero', pintura:'Pintura Exterior', pisos:'Pisos y Cerámicas', hierro:'Hierro Corrugado'}[activeCalc]}
+            </h2>
+            <p className="text-xs text-slate-500 bg-blue-50 px-3 py-2 rounded-lg">
+              {{
+                hormigon: 'Para hormigón H-21 (losas, contrapisos, columnas)',
+                revoque:  'Basado en Weber Pro 30kg · Incluye 15% de desperdicio',
+                pintura:  'Basado en Látex Tersuave 20L · 80m²/balde por mano',
+                pisos:    'Incluye desperdicio por cortes y roturas',
+                hierro:   'Fórmula estándar IRAM · Barras de 12m',
+              }[activeCalc]}
+            </p>
+            {activeCalc === 'hormigon' && <>
+              <Slider label="Largo"   val={hLargo}   set={setHLargo}   unit="m"  min={0.5} max={50} step={0.5} />
+              <Slider label="Ancho"   val={hAncho}   set={setHAncho}   unit="m"  min={0.5} max={50} step={0.5} />
+              <Slider label="Espesor" val={hEspesor} set={setHEspesor} unit="cm" min={5}   max={30} step={1}   />
+            </>}
+            {activeCalc === 'revoque' && <>
+              <Slider label="Superficie" val={rSuperficie} set={setRSuperficie} unit="m²" min={5}  max={500} step={5} />
+              <Slider label="Espesor"    val={rEspesor}    set={setREspesor}    unit="mm" min={8}  max={25}  step={1} />
+            </>}
+            {activeCalc === 'pintura' && <>
+              <Slider label="Superficie" val={pSuperficie} set={setPSuperficie} unit="m²"    min={10} max={500} step={10} />
+              <Slider label="Manos"      val={pManos}      set={setPManos}      unit="manos" min={1}  max={3}   step={1}  />
+            </>}
+            {activeCalc === 'pisos' && <>
+              <Slider label="Superficie del ambiente" val={pisoM2}      set={setPisoM2}      unit="m²" min={1}  max={300} step={1} />
+              <Slider label="Desperdicio"             val={pisoDesperc} set={setPisoDesperc} unit="%"  min={5}  max={20}  step={1} />
+            </>}
+            {activeCalc === 'hierro' && <>
+              <Slider label="Metros lineales" val={hierroMetros} set={setHierroMetros} unit="m" min={10} max={500} step={10} />
+              <div>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Diámetro</p>
+                <div className="flex flex-wrap gap-2">
+                  {[8,10,12,14,16].map(d => (
+                    <button key={d} onClick={() => setHierroDiametro(d)}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-bold border-2 transition-all
+                        ${hierroDiametro === d ? 'bg-[#1B4F8C] border-[#1B4F8C] text-white' : 'border-slate-200 text-slate-600 hover:border-[#1B4F8C]'}`}>
+                      Ø{d}mm
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>}
+          </div>
+
+          {/* Results panel */}
+          <div className="bg-gradient-to-br from-[#1B4F8C] to-[#0d2a4d] rounded-3xl shadow-xl p-8 text-white flex flex-col justify-between">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-blue-300 mb-1">Resultado estimado</p>
+              <h3 className="text-xl font-black mb-6">Lo que necesitás comprar</h3>
+              <div className="space-y-3">
+                {activeCalc === 'hormigon' && <>
+                  <p className="text-xs text-blue-200 opacity-80 mb-4">Volumen total: {resHormigon.volumen} m³</p>
+                  {[
+                    { label:'Cemento Portland 50kg', value:`${resHormigon.cemento} bolsas`, hi: true  },
+                    { label:'Arena gruesa',          value:`${resHormigon.arena} m³`,       hi: false },
+                    { label:'Piedra / Canto rodado', value:`${resHormigon.piedra} m³`,      hi: false },
+                  ].map(({ label, value, hi }) => (
+                    <div key={label} className={`flex justify-between items-center p-3 rounded-xl ${hi ? 'bg-white/20' : 'bg-white/10'}`}>
+                      <span className="text-sm">{label}</span>
+                      <span className={`font-black text-lg ${hi ? 'text-[#E8593C]' : ''}`}>{value}</span>
+                    </div>
+                  ))}
+                </>}
+                {activeCalc === 'revoque' && (
+                  <div className="flex justify-between items-center p-4 rounded-xl bg-white/20">
+                    <span className="text-sm">Weber Pro Revoque 30kg</span>
+                    <span className="font-black text-3xl text-[#E8593C]">{resRevoque.bolsas} <span className="text-base">bolsas</span></span>
+                  </div>
+                )}
+                {activeCalc === 'pintura' && <>
+                  {[
+                    { label:'Látex Exterior Tersuave 20L', value:`${resPintura.baldes} baldes`, hi: true  },
+                    { label:'Fijador Consolidante 4L',     value:`${resPintura.fijador} latas`, hi: false },
+                  ].map(({ label, value, hi }) => (
+                    <div key={label} className={`flex justify-between items-center p-3 rounded-xl ${hi ? 'bg-white/20' : 'bg-white/10'}`}>
+                      <span className="text-sm">{label}</span>
+                      <span className={`font-black text-xl ${hi ? 'text-[#E8593C]' : ''}`}>{value}</span>
+                    </div>
+                  ))}
+                  <p className="text-xs text-blue-200 opacity-70">Total: {resPintura.litros} litros de pintura</p>
+                </>}
+                {activeCalc === 'pisos' && (
+                  <div className="flex justify-between items-center p-4 rounded-xl bg-white/20">
+                    <span className="text-sm">m² a comprar (con {pisoDesperc}% desperdicio)</span>
+                    <span className="font-black text-3xl text-[#E8593C]">{resPisos.m2Total} <span className="text-base">m²</span></span>
+                  </div>
+                )}
+                {activeCalc === 'hierro' && <>
+                  {[
+                    { label:`Barras Ø${hierroDiametro}mm x12m`, value:`${resHierro.barras} barras`, hi: true  },
+                    { label:'Peso total',                        value:`${resHierro.kgTotal} kg`,    hi: false },
+                    { label:'Peso/metro lineal',                 value:`${resHierro.kgPorMetro} kg`, hi: false },
+                  ].map(({ label, value, hi }) => (
+                    <div key={label} className={`flex justify-between items-center p-3 rounded-xl ${hi ? 'bg-white/20' : 'bg-white/10'}`}>
+                      <span className="text-sm">{label}</span>
+                      <span className={`font-black text-xl ${hi ? 'text-[#E8593C]' : ''}`}>{value}</span>
+                    </div>
+                  ))}
+                </>}
+              </div>
+            </div>
+            <div className="mt-8 space-y-3">
+              <button onClick={() => navigateTo('category', undefined, categoryForCalc)}
+                className="w-full py-3.5 bg-[#E8593C] hover:bg-[#d14a2f] text-white font-black rounded-xl transition-colors text-sm">
+                Ver productos relacionados →
+              </button>
+              <p className="text-[10px] text-center text-blue-300 opacity-60">* Valores estimativos. Consultá con un técnico para cantidades exactas.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// SUCURSALES VIEW
+// ─────────────────────────────────────────────
+
+function SucursalesView({ ctx }: { ctx: AppCtx }) {
+  const { navigateTo } = ctx;
+  const [activeId, setActiveId] = useState('central');
+  const active = SUCURSALES.find(s => s.id === activeId)!;
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+      <section className="bg-gradient-to-br from-[#0d2a4d] to-[#1B4F8C] py-14 text-white">
+        <div className="container mx-auto px-6 max-w-5xl text-center">
+          <MapPin className="w-12 h-12 text-[#E8593C] mx-auto mb-5" />
+          <h1 className="text-3xl md:text-4xl font-black mb-3">Nuestras sucursales</h1>
+          <p className="text-slate-300 max-w-xl mx-auto">4 puntos de venta en Mendoza. Visitanos, llamanos o escribinos por WhatsApp.</p>
+        </div>
+      </section>
+
+      <div className="container mx-auto px-4 md:px-8 max-w-6xl py-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          {SUCURSALES.map(s => (
+            <button key={s.id} onClick={() => setActiveId(s.id)}
+              className={`p-4 rounded-2xl border-2 text-left transition-all
+                ${activeId === s.id ? 'border-[#1B4F8C] bg-[#1B4F8C]/5 shadow-md' : 'border-slate-200 bg-white hover:border-slate-300 shadow-sm'}`}>
+              <div className={`w-10 h-10 ${s.color} rounded-xl flex items-center justify-center text-xl text-white mb-3`}>{s.icon}</div>
+              <p className={`font-black text-sm ${activeId === s.id ? 'text-[#1B4F8C]' : 'text-slate-800'}`}>{s.name}</p>
+              <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">{s.address.split(',')[0]}</p>
+            </button>
+          ))}
+        </div>
+
+        <AnimatePresence mode="wait">
+          <motion.div key={activeId} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
+            className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden mb-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2">
+              <div className="p-8 md:p-10">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className={`w-12 h-12 ${active.color} rounded-2xl flex items-center justify-center text-2xl text-white`}>{active.icon}</div>
+                  <div>
+                    <h2 className="text-xl font-black text-slate-800">{active.name}</h2>
+                    <p className="text-sm text-slate-500">{active.address}</p>
+                  </div>
+                </div>
+                <div className="space-y-4 mb-6">
+                  {([['Dirección', active.address, MapPin], ['Teléfono', active.phone, Phone], ['Horarios', active.hours, Clock], ['Email', active.email, Mail]] as const).map(([label, value, Icon]) => (
+                    <div key={label} className="flex items-start gap-3">
+                      <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                        <Icon className="w-4 h-4 text-[#1B4F8C]" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{label}</p>
+                        <p className="text-sm text-slate-700 font-medium">{value}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-sm text-slate-600 leading-relaxed mb-5">{active.description}</p>
+                <div className="grid grid-cols-2 gap-2 mb-6">
+                  {active.features.map(f => (
+                    <div key={f} className="flex items-center gap-2 bg-slate-50 rounded-xl p-2.5">
+                      <Check className="w-4 h-4 text-emerald-500 shrink-0" />
+                      <span className="text-xs font-semibold text-slate-700">{f}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <a href={active.mapUrl} target="_blank" rel="noreferrer"
+                    className="flex-1 flex items-center justify-center gap-2 bg-[#1B4F8C] hover:bg-[#163f70] text-white font-bold py-3 px-5 rounded-xl text-sm transition-colors">
+                    <Navigation className="w-4 h-4" />Cómo llegar
+                  </a>
+                  <a href={`https://wa.me/5492615555555?text=${encodeURIComponent(`Hola! Me interesa visitar ${active.name}. ¿Podría darme más información?`)}`}
+                    target="_blank" rel="noreferrer"
+                    className="flex-1 flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1ebe58] text-white font-bold py-3 px-5 rounded-xl text-sm transition-colors">
+                    <Phone className="w-4 h-4" />WhatsApp
+                  </a>
+                </div>
+              </div>
+              <div className="bg-slate-100 min-h-64 relative overflow-hidden">
+                <iframe
+                  title={`Mapa ${active.name}`}
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent(active.address + ', Mendoza, Argentina')}&output=embed&z=15`}
+                  className="absolute inset-0 w-full h-full border-0"
+                  loading="lazy"
+                />
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+
+        <div className="bg-[#1B4F8C] rounded-3xl p-8 text-center text-white">
+          <Truck className="w-10 h-10 text-[#E8593C] mx-auto mb-3" />
+          <h3 className="text-xl font-black mb-2">¿Necesitás entrega en obra?</h3>
+          <p className="text-slate-300 text-sm mb-6">Entregamos con flota propia en toda Mendoza. Coordiná fecha y horario al comprar.</p>
+          <button onClick={() => navigateTo('home')}
+            className="bg-[#E8593C] hover:bg-[#d14a2f] text-white font-black py-3 px-8 rounded-xl text-sm transition-colors">
+            Ver catálogo completo
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// COMPARADOR MODAL
+// ─────────────────────────────────────────────
+
+function ComparadorModal({ isOpen, onClose, compareIds, onAddToCart }: {
+  isOpen: boolean; onClose: () => void; compareIds: string[]; onAddToCart: (p: Product) => void;
+}) {
+  const products = compareIds.map(id => PRODUCTS.find(p => p.id === id)).filter(Boolean) as Product[];
+
+  const specs: { label: string; getValue: (p: Product) => string }[] = [
+    { label: 'Precio débito/transf.',  getValue: p => fmt(p.cashPrice) },
+    { label: 'Precio en cuotas',       getValue: p => `${p.installments}x ${fmt(p.installmentPrice ?? 0)}` },
+    { label: 'Precio de lista',        getValue: p => fmt(p.listPrice) },
+    { label: 'Marca',                  getValue: p => p.brand },
+    { label: 'Categoría',              getValue: p => p.category },
+    { label: 'SKU',                    getValue: p => p.sku },
+    { label: 'Descuento',              getValue: p => p.discount ? `${p.discount}% OFF` : '—' },
+    { label: 'Stock',                  getValue: p => ({ in_stock: '✅ Disponible', low_stock: '⚠️ Últimas unidades', out_of_stock: '❌ Sin stock' })[p.stockStatus] },
+  ];
+
+  return (
+    <AnimatePresence>
+      {isOpen && products.length >= 2 && (
+        <>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[300]" onClick={onClose} />
+          <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }}
+            className="fixed inset-4 md:inset-8 bg-white rounded-3xl z-[301] flex flex-col shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
+              <h2 className="font-black text-slate-800 text-lg flex items-center gap-2">
+                <Layers className="w-5 h-5 text-[#1B4F8C]" />Comparar productos
+              </h2>
+              <button onClick={onClose} className="p-2 hover:bg-slate-50 rounded-xl"><X className="w-5 h-5 text-slate-500" /></button>
+            </div>
+            <div className="overflow-auto flex-1">
+              <table className="w-full min-w-[500px]">
+                <thead className="sticky top-0 bg-white border-b border-slate-100 z-10">
+                  <tr>
+                    <th className="px-4 py-3 text-left w-32 text-xs font-black text-slate-400 uppercase tracking-wider">Especificación</th>
+                    {products.map(p => (
+                      <th key={p.id} className="px-4 py-3 text-center border-l border-slate-100">
+                        <img src={p.image} alt={p.name} referrerPolicy="no-referrer" className="w-16 h-16 object-contain mx-auto mb-2 bg-slate-50 rounded-xl p-1" />
+                        <p className="text-[10px] font-bold text-slate-400 uppercase">{p.brand}</p>
+                        <p className="text-xs font-semibold text-slate-800 leading-tight line-clamp-2 mt-0.5">{p.name}</p>
+                        <button onClick={() => { onAddToCart(p); onClose(); }}
+                          className="mt-2 w-full py-1.5 bg-[#1B4F8C] text-white text-[10px] font-bold rounded-lg hover:bg-[#163f70] transition-colors">
+                          Agregar al carrito
+                        </button>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {specs.map((spec, i) => (
+                    <tr key={spec.label} className={i % 2 === 0 ? 'bg-slate-50/60' : 'bg-white'}>
+                      <td className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-wider">{spec.label}</td>
+                      {products.map(p => (
+                        <td key={p.id} className="px-4 py-3 text-sm font-semibold text-slate-700 text-center border-l border-slate-100">{spec.getValue(p)}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
+// ─────────────────────────────────────────────
 // APP
 // ─────────────────────────────────────────────
 
 export default function App() {
   const [currentView,     setCurrentView]     = useState<View>('home');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [selectedCat,     setSelectedCat]     = useState<string>('Grifería');
+  const [selectedCat,     setSelectedCat]     = useState<string>('Obra Gruesa');
   const [searchQuery,     setSearchQuery]     = useState('');
   const [showSugg,        setShowSugg]        = useState(false);
-  const [cartItems,       setCartItems]       = useState<CartItem[]>([]);
+  const [cartItems,       setCartItems]       = useState<CartItem[]>(() => {
+    try { return JSON.parse(localStorage.getItem('samaco_cart') ?? '[]'); } catch { return []; }
+  });
   const [cartOpen,        setCartOpen]        = useState(false);
-  const [favorites,       setFavorites]       = useState<Set<string>>(new Set());
+  const [favorites,       setFavorites]       = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('samaco_favs') ?? '[]')); } catch { return new Set(); }
+  });
   const [quantity,        setQuantity]        = useState(1);
   const [activeTab,       setActiveTab]       = useState('detalles');
   const [productReviews,  setProductReviews]  = useState<Record<string, Review[]>>({});
+  const [compareList,     setCompareList]     = useState<string[]>([]);
+  const [comparadorOpen,  setComparadorOpen]  = useState(false);
+
+  // Persistencia localStorage
+  useEffect(() => { localStorage.setItem('samaco_cart', JSON.stringify(cartItems)); }, [cartItems]);
+  useEffect(() => { localStorage.setItem('samaco_favs', JSON.stringify([...favorites])); }, [favorites]);
 
   const cartCount = cartItems.reduce((a, i) => a + i.quantity, 0);
 
@@ -1396,6 +1990,10 @@ export default function App() {
     return next;
   });
 
+  const toggleCompare = (id: string) => setCompareList(prev =>
+    prev.includes(id) ? prev.filter(x => x !== id) : prev.length >= 3 ? prev : [...prev, id]
+  );
+
   const submitReview = (sku: string, r: Omit<Review, 'id' | 'date'>) => {
     const review: Review = {
       ...r, id: Date.now(),
@@ -1409,7 +2007,7 @@ export default function App() {
     setShowSugg(e.target.value.length >= 2);
   };
 
-  const ctx: AppCtx = { navigateTo, addToCart, favorites, toggleFavorite };
+  const ctx: AppCtx = { navigateTo, addToCart, favorites, toggleFavorite, compareList, toggleCompare };
 
   return (
     <div className="min-h-screen flex flex-col selection:bg-[#E8593C] selection:text-white">
@@ -1433,9 +2031,11 @@ export default function App() {
       />
       <main className="flex-1">
         <AnimatePresence mode="wait">
-          {currentView === 'home'     && <HomeView     key="home" ctx={ctx} />}
-          {currentView === 'category' && <CategoryView key={`cat-${selectedCat}`} category={selectedCat} ctx={ctx} />}
-          {currentView === 'product'  && selectedProduct && (
+          {currentView === 'home'        && <HomeView        key="home"          ctx={ctx} />}
+          {currentView === 'category'    && <CategoryView    key={`cat-${selectedCat}`} category={selectedCat} ctx={ctx} />}
+          {currentView === 'calculadora' && <CalculadoraView key="calc"          ctx={ctx} />}
+          {currentView === 'sucursales'  && <SucursalesView  key="suc"           ctx={ctx} />}
+          {currentView === 'product'     && selectedProduct && (
             <ProductDetailView
               key={`prod-${selectedProduct.id}`}
               product={selectedProduct}
@@ -1451,6 +2051,49 @@ export default function App() {
         </AnimatePresence>
       </main>
       <Footer navigateTo={navigateTo} />
+
+      {/* Comparador modal */}
+      <ComparadorModal
+        isOpen={comparadorOpen}
+        onClose={() => setComparadorOpen(false)}
+        compareIds={compareList}
+        onAddToCart={addToCart}
+      />
+
+      {/* Barra flotante del comparador */}
+      <AnimatePresence>
+        {compareList.length > 0 && (
+          <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }}
+            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+            className="fixed bottom-0 left-0 right-0 z-[150] bg-white border-t-2 border-[#1B4F8C] shadow-2xl px-4 py-3">
+            <div className="container mx-auto max-w-5xl flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <Layers className="w-5 h-5 text-[#1B4F8C] shrink-0" />
+                <div className="flex gap-2 overflow-x-auto no-scrollbar">
+                  {compareList.map(id => {
+                    const p = PRODUCTS.find(prod => prod.id === id);
+                    if (!p) return null;
+                    return (
+                      <div key={id} className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 shrink-0">
+                        <img src={p.image} alt="" referrerPolicy="no-referrer" className="w-7 h-7 object-contain" />
+                        <span className="text-xs font-semibold text-slate-700 max-w-[80px] truncate">{p.name}</span>
+                        <button onClick={() => toggleCompare(id)} className="text-slate-300 hover:text-red-400 ml-0.5"><X className="w-3 h-3" /></button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button onClick={() => setCompareList([])} className="text-xs font-bold text-slate-400 hover:text-slate-600 px-3 py-2">Limpiar</button>
+                <button onClick={() => setComparadorOpen(true)} disabled={compareList.length < 2}
+                  className="bg-[#1B4F8C] hover:bg-[#163f70] disabled:bg-slate-200 disabled:text-slate-400 text-white text-xs font-black px-5 py-2.5 rounded-xl transition-colors">
+                  Comparar ({compareList.length})
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* WhatsApp FAB */}
       <a href="https://wa.me/5492615555555" target="_blank" rel="noreferrer"
