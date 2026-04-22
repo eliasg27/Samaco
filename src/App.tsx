@@ -765,7 +765,7 @@ interface AppCtx {
 // ─────────────────────────────────────────────
 
 function HomeView({ ctx }: { ctx: AppCtx }) {
-  const { navigateTo, addToCart, favorites, toggleFavorite } = ctx;
+  const { navigateTo, addToCart, favorites, toggleFavorite, compareList, toggleCompare } = ctx;
   const [slide, setSlide] = useState(0);
 
   useEffect(() => {
