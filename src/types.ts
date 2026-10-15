@@ -1,5 +1,9 @@
 export interface Product {
   id: string;
+  /** Slug para URLs (handle de Shopify). */
+  handle?: string;
+  /** ID de la variante en Shopify (gid://shopify/ProductVariant/…). Lo necesita el checkout. */
+  variantId?: string;
   name: string;
   brand: string;
   category: string;
@@ -24,6 +28,7 @@ export interface Product {
 export type View = 'home' | 'category' | 'product' | 'calculadora' | 'sucursales';
 
 export interface Category {
+  /** En Shopify es el handle de la colección. */
   id: string;
   name: string;
   icon: string;

@@ -8,7 +8,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { View, Product, CartItem, Review } from './types';
-import { CATEGORIES, PRODUCTS } from './data';
+import { commerce } from './services';
+import { useCategories, useProducts, useProductsByIds, useProductsBySkus, useProductSearch } from './services/hooks';
 
 // ─────────────────────────────────────────────
 // CONSTANTS
@@ -321,6 +322,21 @@ const ProductCard = ({ product, onClick, onAddToCart, isFavorite, onToggleFavori
   </motion.article>
 );
 
+const ProductGridSkeleton = ({ count = 4 }: { count?: number }) => (
+  <>
+    {Array.from({ length: count }, (_, i) => (
+      <div key={i} className="bg-white rounded-2xl border border-slate-100 h-80 animate-pulse" aria-hidden>
+        <div className="h-48 bg-slate-100 rounded-t-2xl" />
+        <div className="p-4 space-y-2">
+          <div className="h-2 w-1/3 bg-slate-100 rounded" />
+          <div className="h-3 w-full bg-slate-100 rounded" />
+          <div className="h-3 w-2/3 bg-slate-100 rounded" />
+        </div>
+      </div>
+    ))}
+  </>
+);
+
 // ─────────────────────────────────────────────
 // MINI CART
 // ─────────────────────────────────────────────
@@ -336,6 +352,20 @@ interface MiniCartProps {
 
 const MiniCart = ({ isOpen, onClose, cartItems, onUpdate, onRemove }: MiniCartProps) => {
   const total = cartItems.reduce((acc, i) => acc + i.product.cashPrice * i.quantity, 0);
+  const [checkingOut,   setCheckingOut]   = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+
+  useEffect(() => { setCheckoutError(null); }, [cartItems, isOpen]);
+
+  // El pago lo resuelve el checkout de Shopify: armamos el carrito allá y redirigimos.
+  const goToCheckout = async () => {
+    setCheckingOut(true);
+    setCheckoutError(null);
+    const result = await commerce.createCheckout(cartItems);
+    if ('url' in result) { window.location.href = result.url; return; }
+    setCheckoutError(result.message);
+    setCheckingOut(false);
+  };
   return (
     <AnimatePresence>
       {isOpen && (
@@ -404,9 +434,13 @@ const MiniCart = ({ isOpen, onClose, cartItems, onUpdate, onRemove }: MiniCartPr
                   <span className="text-[#1B4F8C] font-black text-base">{fmt(total)}</span>
                 </div>
                 <p className="text-[10px] text-slate-400 text-center">15% OFF débito/transferencia ya aplicado al precio</p>
-                <button className="w-full py-4 bg-[#E8593C] hover:bg-[#d14a2f] text-white font-black rounded-2xl transition-colors text-sm shadow-lg">
-                  Ir a pagar
+                <button onClick={goToCheckout} disabled={checkingOut}
+                  className="w-full py-4 bg-[#E8593C] hover:bg-[#d14a2f] disabled:bg-slate-300 text-white font-black rounded-2xl transition-colors text-sm shadow-lg">
+                  {checkingOut ? 'Redirigiendo al pago…' : 'Ir a pagar'}
                 </button>
+                {checkoutError && (
+                  <p role="alert" className="text-[11px] text-center text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">{checkoutError}</p>
+                )}
                 <a
                   href={`https://wa.me/5492615555555?text=${encodeURIComponent(
                     'Hola Samaco! Quiero consultar disponibilidad y coordinar entrega:\n\n' +
@@ -450,7 +484,7 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
   const [mobileOpen,  setMobileOpen]  = useState(false);
   const [megaMenu,    setMegaMenu]    = useState<string | null>(null);
   const [accountOpen, setAccountOpen] = useState(false);
-  const megaTimer = useRef<ReturnType<typeof setTimeout>>();
+  const megaTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -461,9 +495,10 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
   const openMega  = (cat: string) => { clearTimeout(megaTimer.current); setMegaMenu(cat); };
   const closeMega = () => { megaTimer.current = setTimeout(() => setMegaMenu(null), 120); };
 
-  const q             = searchQuery.toLowerCase();
-  const sugProducts   = q.length >= 2 ? PRODUCTS.filter(p => p.name.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q)).slice(0, 4) : [];
-  const sugCategories = q.length >= 2 ? CATEGORIES.filter(c => c.name.toLowerCase().includes(q)).slice(0, 3) : [];
+  const { data: categories }  = useCategories();
+  const { data: sugProducts } = useProductSearch(searchQuery, 4);
+  const q             = searchQuery.trim().toLowerCase();
+  const sugCategories = q.length >= 2 ? categories.filter(c => c.name.toLowerCase().includes(q)).slice(0, 3) : [];
 
   return (
     <>
@@ -583,7 +618,7 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
         <nav className="bg-white border-t border-slate-100 hidden md:block" aria-label="Categorías principales">
           <div className="container mx-auto px-8 max-w-7xl">
             <ul className="flex items-center overflow-x-auto no-scrollbar">
-              {CATEGORIES.map(cat => (
+              {categories.map(cat => (
                 <li key={cat.id} className="relative shrink-0" onMouseEnter={() => openMega(cat.name)} onMouseLeave={closeMega}>
                   <button onClick={() => navigateTo('category', undefined, cat.name)}
                     className={`flex items-center gap-1 px-4 py-4 text-[11px] font-bold uppercase tracking-wider border-b-2 transition-all whitespace-nowrap
@@ -629,7 +664,7 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
               </div>
               <div className="overflow-y-auto flex-1 py-4">
                 <p className="px-5 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Categorías</p>
-                {CATEGORIES.map(cat => (
+                {categories.map(cat => (
                   <button key={cat.id} onClick={() => { navigateTo('category', undefined, cat.name); setMobileOpen(false); }}
                     className="w-full flex items-center gap-3 px-5 py-3.5 hover:bg-slate-50 transition-colors text-left">
                     <span className="text-xl">{cat.icon}</span>
@@ -667,7 +702,9 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
 // FOOTER
 // ─────────────────────────────────────────────
 
-const Footer = ({ navigateTo }: { navigateTo: (v: View, p?: Product, c?: string) => void }) => (
+const Footer = ({ navigateTo }: { navigateTo: (v: View, p?: Product, c?: string) => void }) => {
+  const { data: categories } = useCategories();
+  return (
   <footer className="bg-[#0d2a4d] text-white">
     <div className="container mx-auto px-6 md:px-8 max-w-7xl py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
       {/* Brand */}
@@ -691,7 +728,7 @@ const Footer = ({ navigateTo }: { navigateTo: (v: View, p?: Product, c?: string)
       <div>
         <h4 className="font-black text-sm uppercase tracking-widest mb-5 text-slate-300">Categorías</h4>
         <ul className="space-y-2.5">
-          {CATEGORIES.slice(0, 7).map(c => (
+          {categories.slice(0, 7).map(c => (
             <li key={c.id}>
               <button onClick={() => navigateTo('category', undefined, c.name)} className="text-slate-400 hover:text-white text-sm transition-colors text-left">{c.name}</button>
             </li>
@@ -745,7 +782,8 @@ const Footer = ({ navigateTo }: { navigateTo: (v: View, p?: Product, c?: string)
       </div>
     </div>
   </footer>
-);
+  );
+};
 
 // ─────────────────────────────────────────────
 // APP CONTEXT TYPE
@@ -764,9 +802,14 @@ interface AppCtx {
 // HOME VIEW
 // ─────────────────────────────────────────────
 
+const KIT_SKUS = KITS.flatMap(k => k.skus);
+
 function HomeView({ ctx }: { ctx: AppCtx }) {
   const { navigateTo, addToCart, favorites, toggleFavorite, compareList, toggleCompare } = ctx;
   const [slide, setSlide] = useState(0);
+  const { data: categories } = useCategories();
+  const { data: featured, loading: featuredLoading } = useProducts({ featured: true, limit: 8 });
+  const { data: kitCatalog } = useProductsBySkus(KIT_SKUS);
 
   useEffect(() => {
     const t = setInterval(() => setSlide(s => (s + 1) % HERO_SLIDES.length), 5000);
@@ -862,7 +905,7 @@ function HomeView({ ctx }: { ctx: AppCtx }) {
       <section className="container mx-auto px-4 md:px-8 max-w-7xl py-14">
         <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight mb-8">Explorá por categoría</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
-          {CATEGORIES.map(cat => (
+          {categories.map(cat => (
             <motion.button key={cat.id} whileHover={{ y: -4 }} transition={{ duration: 0.2 }}
               onClick={() => navigateTo('category', undefined, cat.name)}
               className="relative h-40 md:h-48 rounded-2xl overflow-hidden group text-left"
@@ -890,7 +933,8 @@ function HomeView({ ctx }: { ctx: AppCtx }) {
             </button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {PRODUCTS.filter(p => p.isFeatured).slice(0, 8).map(p => (
+            {featuredLoading && <ProductGridSkeleton count={8} />}
+            {featured.map(p => (
               <ProductCard key={p.id} product={p}
                 onClick={() => navigateTo('product', p)} onAddToCart={addToCart}
                 isFavorite={favorites.has(p.id)} onToggleFavorite={toggleFavorite}
@@ -911,7 +955,8 @@ function HomeView({ ctx }: { ctx: AppCtx }) {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {KITS.map(kit => {
-              const kitProducts = kit.skus.map(sku => PRODUCTS.find(p => p.sku === sku)).filter(Boolean) as Product[];
+              const kitProducts = kit.skus.map(sku => kitCatalog.find(p => p.sku === sku)).filter(p => p !== undefined);
+              if (kitProducts.length === 0) return null;
               const totalCash = kitProducts.reduce((acc, p) => acc + p.cashPrice, 0);
               return (
                 <motion.div key={kit.id} whileHover={{ y: -4 }} transition={{ duration: 0.2 }}
@@ -1036,17 +1081,18 @@ function CategoryView({ category, ctx }: { category: string; ctx: AppCtx }) {
   const [sortBy,      setSortBy]      = useState('relevance');
   const [showFilters, setShowFilters] = useState(false);
 
-  const catData = CATEGORIES.find(c => c.name === category) ?? CATEGORIES[0];
+  const { data: categories } = useCategories();
+  const { data: categoryProducts, loading } = useProducts({ category: category || undefined });
+  const catData = categories.find(c => c.name === category)
+    ?? { id: '', name: category || 'Catálogo', icon: '', image: '', description: '' };
 
-  let products = category === 'Ofertas'
-    ? PRODUCTS.filter(p => p.discount)
-    : category ? PRODUCTS.filter(p => p.category === category) : [...PRODUCTS];
+  let products = categoryProducts;
   if (selBrands.length) products = products.filter(p => selBrands.includes(p.brand));
   products = products.filter(p => p.cashPrice >= priceMin && p.cashPrice <= priceMax);
   if (sortBy === 'price_asc')  products = [...products].sort((a,b) => a.cashPrice - b.cashPrice);
   if (sortBy === 'price_desc') products = [...products].sort((a,b) => b.cashPrice - a.cashPrice);
 
-  const allBrands = [...new Set((category ? PRODUCTS.filter(p => p.category === category) : PRODUCTS).map(p => p.brand))];
+  const allBrands = [...new Set(categoryProducts.map(p => p.brand))];
   const clearFilters = () => { setPriceMin(0); setPriceMax(MAX_PRICE); setSelBrands([]); setSelFinishes([]); setSortBy('relevance'); };
 
   const FiltersContent = () => (
@@ -1123,7 +1169,7 @@ function CategoryView({ category, ctx }: { category: string; ctx: AppCtx }) {
       {/* Hero */}
       <section className="relative h-52 md:h-64 overflow-hidden bg-slate-900 flex items-center">
         <div className="absolute inset-0">
-          <img src={catData.image} alt={catData.name} referrerPolicy="no-referrer" className="w-full h-full object-cover opacity-40" />
+          {catData.image && <img src={catData.image} alt={catData.name} referrerPolicy="no-referrer" className="w-full h-full object-cover opacity-40" />}
           <div className="absolute inset-0 bg-gradient-to-r from-[#1B4F8C]/90 to-[#1B4F8C]/40" />
         </div>
         <div className="relative z-10 container mx-auto px-6 md:px-8 max-w-7xl text-white">
@@ -1165,7 +1211,9 @@ function CategoryView({ category, ctx }: { category: string; ctx: AppCtx }) {
                 </select>
               </div>
             </div>
-            {products.length > 0 ? (
+            {loading ? (
+              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4"><ProductGridSkeleton count={6} /></div>
+            ) : products.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {products.map(p => (
                   <ProductCard key={p.id} product={p}
@@ -1241,7 +1289,8 @@ function ProductDetailView({ product, ctx, quantity, setQuantity, activeTab, set
   const userRevs  = productReviews[product.sku] ?? [];
   const reviews   = [...mockRevs, ...userRevs];
   const avgRating = reviews.length ? reviews.reduce((a, r) => a + r.rating, 0) / reviews.length : 4.9;
-  const related   = PRODUCTS.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
+  const { data: sameCategory } = useProducts({ category: product.category, limit: 5 });
+  const related   = sameCategory.filter(p => p.id !== product.id).slice(0, 4);
   const images    = [product.image, product.image, product.image];
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -1865,11 +1914,9 @@ function SucursalesView({ ctx }: { ctx: AppCtx }) {
 // COMPARADOR MODAL
 // ─────────────────────────────────────────────
 
-function ComparadorModal({ isOpen, onClose, compareIds, onAddToCart }: {
-  isOpen: boolean; onClose: () => void; compareIds: string[]; onAddToCart: (p: Product) => void;
+function ComparadorModal({ isOpen, onClose, products, onAddToCart }: {
+  isOpen: boolean; onClose: () => void; products: Product[]; onAddToCart: (p: Product) => void;
 }) {
-  const products = compareIds.map(id => PRODUCTS.find(p => p.id === id)).filter(Boolean) as Product[];
-
   const specs: { label: string; getValue: (p: Product) => string }[] = [
     { label: 'Precio débito/transf.',  getValue: p => fmt(p.cashPrice) },
     { label: 'Precio en cuotas',       getValue: p => `${p.installments}x ${fmt(p.installmentPrice ?? 0)}` },
@@ -1954,6 +2001,7 @@ export default function App() {
   const [productReviews,  setProductReviews]  = useState<Record<string, Review[]>>({});
   const [compareList,     setCompareList]     = useState<string[]>([]);
   const [comparadorOpen,  setComparadorOpen]  = useState(false);
+  const { data: compareProducts } = useProductsByIds(compareList);
 
   // Persistencia localStorage
   useEffect(() => { localStorage.setItem('samaco_cart', JSON.stringify(cartItems)); }, [cartItems]);
@@ -2056,7 +2104,7 @@ export default function App() {
       <ComparadorModal
         isOpen={comparadorOpen}
         onClose={() => setComparadorOpen(false)}
-        compareIds={compareList}
+        products={compareProducts}
         onAddToCart={addToCart}
       />
 
@@ -2070,9 +2118,8 @@ export default function App() {
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <Layers className="w-5 h-5 text-[#1B4F8C] shrink-0" />
                 <div className="flex gap-2 overflow-x-auto no-scrollbar">
-                  {compareList.map(id => {
-                    const p = PRODUCTS.find(prod => prod.id === id);
-                    if (!p) return null;
+                  {compareProducts.map(p => {
+                    const id = p.id;
                     return (
                       <div key={id} className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 shrink-0">
                         <img src={p.image} alt="" referrerPolicy="no-referrer" className="w-7 h-7 object-contain" />
