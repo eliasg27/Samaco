@@ -4,12 +4,16 @@ import {
   Truck, Package, Plus, Minus, Check, Clock, CreditCard, Building2,
   Star, ArrowRight, Menu, X, Phone, MapPin, Mail, Info, Trash2,
   Shield, Instagram, Facebook, Twitter, Archive, Zap, Calculator,
-  Layers, Navigation,
+  Layers, Navigation, BadgeCheck, LogOut,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { View, Product, CartItem, Review } from './types';
 import { commerce } from './services';
 import { useCategories, useProducts, useProductsByIds, useProductsBySkus, useProductSearch } from './services/hooks';
+import { useProfesional } from './profesionales/context';
+import { CirculoView } from './profesionales/CirculoView';
+import { AccesoView } from './profesionales/AccesoView';
+import { PanelView } from './profesionales/PanelView';
 
 // ─────────────────────────────────────────────
 // CONSTANTS
@@ -495,6 +499,7 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
   const openMega  = (cat: string) => { clearTimeout(megaTimer.current); setMegaMenu(cat); };
   const closeMega = () => { megaTimer.current = setTimeout(() => setMegaMenu(null), 120); };
 
+  const { profesional, salir } = useProfesional();
   const { data: categories }  = useCategories();
   const { data: sugProducts } = useProductSearch(searchQuery, 4);
   const q             = searchQuery.trim().toLowerCase();
@@ -510,6 +515,9 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
             <span>15% OFF débito / transferencia</span>
             <a href="https://wa.me/5492615555555" target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-green-300 transition-colors"><Phone className="w-3 h-3" />WhatsApp atención</a>
             <span className="flex items-center gap-1.5"><MapPin className="w-3 h-3" />4 sucursales en Mendoza</span>
+            <button onClick={() => navigateTo('profesionales')} className="flex items-center gap-1.5 hover:text-[#E8593C] transition-colors uppercase tracking-widest">
+              <BadgeCheck className="w-3 h-3" />Círculo de Profesionales
+            </button>
           </div>
         </div>
 
@@ -579,16 +587,36 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
               <AnimatePresence>
                 {accountOpen && (
                   <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }}
-                    className="absolute right-0 top-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden w-48 z-50"
+                    className="absolute right-0 top-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden w-60 z-50"
                     onMouseLeave={() => setAccountOpen(false)}>
-                    {([['Mi cuenta', User], ['Mis pedidos', Package], ['Mis favoritos', Heart]] as const).map(([label, Icon]) => (
-                      <button key={label} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors text-sm font-medium text-slate-700">
-                        <Icon className="w-4 h-4 text-slate-400" />{label}
-                      </button>
-                    ))}
-                    <div className="border-t border-slate-100">
-                      <button className="w-full px-4 py-3 hover:bg-slate-50 text-sm font-medium text-[#E8593C] text-left transition-colors">Ingresar / Registrarse</button>
-                    </div>
+                    {profesional ? (
+                      <>
+                        <div className="px-4 py-3 border-b border-slate-100">
+                          <p className="text-sm font-black text-slate-800 truncate">{profesional.nombre} {profesional.apellido}</p>
+                          <p className="text-[11px] text-slate-400">{profesional.estado === 'aprobado' ? 'Miembro del Círculo' : 'Matrícula en revisión'}</p>
+                        </div>
+                        <button onClick={() => { navigateTo('panel'); setAccountOpen(false); }}
+                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors text-sm font-medium text-slate-700">
+                          <BadgeCheck className="w-4 h-4 text-[#1B4F8C]" />Mi panel profesional
+                        </button>
+                        <button onClick={async () => { await salir(); setAccountOpen(false); navigateTo('home'); }}
+                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 border-t border-slate-100 transition-colors text-sm font-medium text-slate-500">
+                          <LogOut className="w-4 h-4 text-slate-400" />Cerrar sesión
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button onClick={() => { navigateTo('pro-ingresar'); setAccountOpen(false); }}
+                          className="w-full px-4 py-3 hover:bg-slate-50 text-sm font-bold text-[#E8593C] text-left transition-colors">
+                          Ingresar / Registrarse
+                        </button>
+                        <button onClick={() => { navigateTo('profesionales'); setAccountOpen(false); }}
+                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 border-t border-slate-100 transition-colors text-sm font-medium text-slate-700 text-left">
+                          <BadgeCheck className="w-4 h-4 text-[#1B4F8C] shrink-0" />
+                          <span>Círculo de Profesionales<span className="block text-[11px] text-slate-400 font-normal">Para arquitectos y profesionales matriculados</span></span>
+                        </button>
+                      </>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -683,6 +711,11 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
                   className="w-full flex items-center gap-3 px-5 py-3 hover:bg-slate-50 transition-colors text-left">
                   <MapPin className="w-5 h-5 text-[#1B4F8C]" />
                   <span className="font-semibold text-sm text-slate-700">Nuestras sucursales</span>
+                </button>
+                <button onClick={() => { navigateTo(profesional ? 'panel' : 'profesionales'); setMobileOpen(false); }}
+                  className="w-full flex items-center gap-3 px-5 py-3 hover:bg-slate-50 transition-colors text-left">
+                  <BadgeCheck className="w-5 h-5 text-[#1B4F8C]" />
+                  <span className="font-semibold text-sm text-slate-700">{profesional ? 'Mi panel profesional' : 'Círculo de Profesionales'}</span>
                 </button>
               </div>
               <div className="border-t border-slate-100 p-5">
@@ -987,6 +1020,24 @@ function HomeView({ ctx }: { ctx: AppCtx }) {
               );
             })}
           </div>
+        </div>
+      </section>
+
+      {/* ── CÍRCULO DE PROFESIONALES ── */}
+      <section className="bg-[#0d2a4d] text-white">
+        <div className="container mx-auto px-4 md:px-8 max-w-7xl py-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="flex gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-[#E8593C] flex items-center justify-center shrink-0"><BadgeCheck className="w-6 h-6" /></div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#E8593C] mb-1">Arquitectos · Ingenieros · MMO · Diseñadores</p>
+              <h2 className="text-2xl md:text-3xl font-black tracking-tight">Círculo de Profesionales Samaco</h2>
+              <p className="text-sm text-slate-300 mt-1 max-w-xl">Precios profesionales, eventos en Mendoza y San Juan y un asesor dedicado. Alta con tu matrícula.</p>
+            </div>
+          </div>
+          <button onClick={() => navigateTo('profesionales')}
+            className="shrink-0 bg-white text-[#0d2a4d] hover:bg-slate-100 font-black py-3.5 px-7 rounded-2xl text-sm transition-colors inline-flex items-center gap-2">
+            Conocer el Círculo <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
       </section>
 
@@ -2083,6 +2134,10 @@ export default function App() {
           {currentView === 'category'    && <CategoryView    key={`cat-${selectedCat}`} category={selectedCat} ctx={ctx} />}
           {currentView === 'calculadora' && <CalculadoraView key="calc"          ctx={ctx} />}
           {currentView === 'sucursales'  && <SucursalesView  key="suc"           ctx={ctx} />}
+          {currentView === 'profesionales' && <CirculoView key="circulo" ir={v => navigateTo(v)} />}
+          {currentView === 'pro-ingresar'  && <AccesoView  key="acceso"  modo="ingresar" ir={v => navigateTo(v)} />}
+          {currentView === 'pro-registro'  && <AccesoView  key="acceso"  modo="registro" ir={v => navigateTo(v)} />}
+          {currentView === 'panel'         && <PanelView   key="panel"   ir={v => navigateTo(v)} />}
           {currentView === 'product'     && selectedProduct && (
             <ProductDetailView
               key={`prod-${selectedProduct.id}`}

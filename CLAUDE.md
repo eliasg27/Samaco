@@ -35,6 +35,16 @@ Paljet (ERP)  ──sync (API)──▶  Shopify (productos, precios, stock)
 
 Variables en `.env.example`. `npm run lint` (tsc) tiene que pasar limpio.
 
+## Círculo de Profesionales (`src/profesionales/`)
+
+Programa para arquitectos, ingenieros, MMO y diseñadores con matrícula. Sedes: Samaco Mendoza y Samaco San Juan.
+
+- Vistas: `profesionales` (landing pública), `pro-ingresar` / `pro-registro` (alta con matrícula), `panel` (privado: credencial, eventos, descuentos, red, perfil).
+- Estados de membresía: `pendiente` → Samaco valida la matrícula → `aprobado`. Los descuentos y eventos exclusivos se habilitan solo aprobado.
+- `service.ts` documenta el mapeo previsto a Shopify (customers con tag + metafields, descuentos por segmento, metaobjects para eventos/estudios). Hoy corre `mock.ts` en localStorage, con la cuenta demo `demo@samaco.test` / `demo1234` y un botón "Simular aprobación (demo)".
+- Datos de ejemplo en `mock-data.ts` (eventos, estudios, descuentos, asesores en `ui.tsx`): reemplazar por los reales.
+- El directorio de profesionales muestra solo a quienes aceptaron aparecer (opt-in).
+
 ## Reglas de trabajo
 
 - Los componentes **nunca** importan datos directo (`mock-data.ts`) ni un provider: usan los hooks o `commerce`. Si falta una operación, se agrega al contrato y a ambos providers.

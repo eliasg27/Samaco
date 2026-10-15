@@ -25,7 +25,10 @@ export interface Product {
   isFeatured?: boolean;
 }
 
-export type View = 'home' | 'category' | 'product' | 'calculadora' | 'sucursales';
+export type View =
+  | 'home' | 'category' | 'product' | 'calculadora' | 'sucursales'
+  // Círculo de Profesionales
+  | 'profesionales' | 'pro-ingresar' | 'pro-registro' | 'panel';
 
 export interface Category {
   /** En Shopify es el handle de la colección. */
