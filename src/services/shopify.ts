@@ -191,6 +191,14 @@ export const shopifyCommerce: CommerceService = {
     return productsQuery(tagQuery, first);
   },
 
+  async getProductByHandle(handle) {
+    const data = await storefront<{ product: ShopifyProduct | null }>(/* GraphQL */ `
+      ${PRODUCT_FIELDS}
+      query ProductByHandle($handle: String!) { product(handle: $handle) { ...ProductFields } }
+    `, { handle });
+    return data.product ? toProduct(data.product) : null;
+  },
+
   async getProductsByIds(ids) {
     if (!ids.length) return [];
     const data = await storefront<{ nodes: (ShopifyProduct | null)[] }>(/* GraphQL */ `

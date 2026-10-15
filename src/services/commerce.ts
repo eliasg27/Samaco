@@ -27,6 +27,8 @@ export interface CommerceService {
   readonly name: 'mock' | 'shopify';
   getCategories(): Promise<Category[]>;
   getProducts(filter?: ProductFilter): Promise<Product[]>;
+  /** Producto por handle (el slug de la URL /productos/:handle). null si no existe. */
+  getProductByHandle(handle: string): Promise<Product | null>;
   getProductsByIds(ids: string[]): Promise<Product[]>;
   getProductsBySkus(skus: string[]): Promise<Product[]>;
   searchProducts(query: string, limit?: number): Promise<Product[]>;

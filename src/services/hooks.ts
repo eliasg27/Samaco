@@ -50,6 +50,9 @@ export const useCategories = () =>
 export const useProducts = (filter: ProductFilter = {}) =>
   useCommerceQuery(`products:${JSON.stringify(filter)}`, () => commerce.getProducts(filter), EMPTY_PRODUCTS);
 
+export const useProductByHandle = (handle: string | undefined) =>
+  useCommerceQuery<Product | null>(handle ? `handle:${handle}` : null, () => commerce.getProductByHandle(handle!), null);
+
 export const useProductsByIds = (ids: string[]) =>
   useCommerceQuery(ids.length ? `ids:${ids.join(',')}` : null, () => commerce.getProductsByIds(ids), EMPTY_PRODUCTS);
 

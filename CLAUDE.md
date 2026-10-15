@@ -35,6 +35,23 @@ Paljet (ERP)  ──sync (API)──▶  Shopify (productos, precios, stock)
 
 Variables en `.env.example`. `npm run lint` (tsc) tiene que pasar limpio.
 
+## URLs (`src/routes.ts`)
+
+React Router (`BrowserRouter`) + `vercel.json` con rewrite a `index.html`. Todas las URLs y el parseo están en `routes.ts`; para navegar usar `paths.*` o `navigateTo(view, …)`, nunca strings sueltos.
+
+| Página | URL |
+|---|---|
+| Home | `/` |
+| Catálogo / categoría | `/categorias` · `/categorias/:handle` (filtros en query: `?orden=menor-precio&marca=a,b&min=&max=`) |
+| Producto | `/productos/:handle` |
+| Búsqueda | `/buscar?q=` |
+| Calculadora · Sucursales | `/calculadora` · `/sucursales` |
+| Círculo de Profesionales | `/CPS` · `/CPS/ingresar` · `/CPS/registro` · `/CPS/panel[/eventos|descuentos|red|perfil]` · `/CPS/eventos/:id` |
+
+- Los handles son los de Shopify (en el mock se derivan del nombre con `lib/slug.ts`).
+- `/cps` en cualquier combinación de mayúsculas redirige a `/CPS`.
+- Cada vista dentro de `<AnimatePresence>` tiene que tener como raíz un `motion.div`, incluso en estados de carga o vacíos; si no, la transición queda colgada.
+
 ## Círculo de Profesionales (`src/profesionales/`)
 
 Programa para arquitectos, ingenieros, MMO y diseñadores con matrícula. Sedes: Samaco Mendoza y Samaco San Juan.

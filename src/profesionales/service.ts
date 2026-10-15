@@ -20,6 +20,8 @@ export interface ProfesionalesService {
   actualizarPerfil(id: string, cambios: Partial<Pick<Profesional, 'telefono' | 'estudio' | 'apareceEnDirectorio' | 'sede'>>): Promise<Profesional>;
 
   getEventos(sede?: Sede): Promise<Evento[]>;
+  /** Evento por id (slug de la URL /CPS/eventos/:id). null si no existe. */
+  getEvento(id: string): Promise<Evento | null>;
   inscribirEvento(profesionalId: string, eventoId: string): Promise<Profesional>;
   cancelarInscripcion(profesionalId: string, eventoId: string): Promise<Profesional>;
 

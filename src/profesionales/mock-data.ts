@@ -6,7 +6,7 @@ const img = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=c
 
 export const EVENTOS: Evento[] = [
   {
-    id: 'ev-1',
+    id: 'porcelanatos-gran-formato',
     titulo: 'Porcelanatos de gran formato: diseño y colocación',
     tipo: 'capacitacion',
     sede: 'mendoza',
@@ -20,7 +20,7 @@ export const EVENTOS: Evento[] = [
     exclusivo: true,
   },
   {
-    id: 'ev-2',
+    id: 'after-office-san-juan',
     titulo: 'After office del Círculo de Profesionales',
     tipo: 'networking',
     sede: 'san-juan',
@@ -33,7 +33,7 @@ export const EVENTOS: Evento[] = [
     exclusivo: true,
   },
   {
-    id: 'ev-3',
+    id: 'lanzamiento-griferia-fv',
     titulo: 'Lanzamiento línea de grifería de diseño',
     tipo: 'lanzamiento',
     sede: 'mendoza',
@@ -47,7 +47,7 @@ export const EVENTOS: Evento[] = [
     exclusivo: false,
   },
   {
-    id: 'ev-4',
+    id: 'impermeabilizacion-cubiertas',
     titulo: 'Impermeabilización de cubiertas: membranas y líquidos',
     tipo: 'capacitacion',
     sede: 'san-juan',
@@ -61,7 +61,7 @@ export const EVENTOS: Evento[] = [
     exclusivo: true,
   },
   {
-    id: 'ev-5',
+    id: 'visita-planta-bloques',
     titulo: 'Visita técnica: planta de bloques de hormigón',
     tipo: 'visita',
     sede: 'mendoza',
@@ -74,7 +74,7 @@ export const EVENTOS: Evento[] = [
     exclusivo: true,
   },
   {
-    id: 'ev-6',
+    id: 'cierre-de-anio-2026',
     titulo: 'Cierre de año del Círculo — Mendoza y San Juan',
     tipo: 'networking',
     sede: 'mendoza',

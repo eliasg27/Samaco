@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Award, BookOpen, CalendarDays, Clock, Lock, MapPin, Percent, Truck, UserCheck, Users } from 'lucide-react';
+import { Link } from 'react-router';
+import { paths } from '../routes';
 import { Beneficio, Evento, Sede, SEDES, TIPOS_EVENTO } from './types';
 
 /** Carga asíncrona simple para los datos del Círculo. */
@@ -92,7 +94,9 @@ export function EventoCard({ evento, accion, inscripto }: EventoCardProps) {
         </p>
       </div>
       <div className="p-5 flex flex-col flex-1">
-        <h3 className="font-black text-slate-800 leading-snug mb-2">{evento.titulo}</h3>
+        <h3 className="font-black text-slate-800 leading-snug mb-2">
+          <Link to={paths.evento(evento.id)} className="hover:text-[#1B4F8C] hover:underline underline-offset-2">{evento.titulo}</Link>
+        </h3>
         <p className="text-xs text-slate-500 leading-relaxed mb-4 flex-1">{evento.descripcion}</p>
         <div className="space-y-1.5 text-xs text-slate-600 mb-4">
           <p className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-slate-400" /><span className="capitalize">{formatoFecha(evento.fecha)}</span> · {formatoHora(evento.fecha)} h</p>

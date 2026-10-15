@@ -34,7 +34,7 @@ async function cuentas(): Promise<CuentaGuardada[]> {
         nombre: 'Cuenta', apellido: 'Demo', email: DEMO_CUENTA.email, telefono: '2610000000',
         profesion: 'arquitecto', matricula: 'DEMO-001', colegio: 'camza', sede: 'mendoza',
         estudio: 'Estudio Demo', apareceEnDirectorio: true, estado: 'aprobado',
-        fechaAlta: '2026-01-15T00:00:00-03:00', eventosInscriptos: ['ev-3'],
+        fechaAlta: '2026-01-15T00:00:00-03:00', eventosInscriptos: ['lanzamiento-griferia-fv'],
       },
     });
     escribir(KEY_CUENTAS, lista);
@@ -108,6 +108,15 @@ export const mockProfesionales: ProfesionalesService & { simularAprobacion(id: s
       .map(e => ({ ...e, inscriptos: Math.min(e.cupo, e.inscriptos + extra(e.id)) }))
       .filter(e => new Date(e.fecha).getTime() >= ahora && (!sede || e.sede === sede))
       .sort((a, b) => a.fecha.localeCompare(b.fecha));
+  },
+
+  async getEvento(id) {
+    // Sin filtro de fecha: un link compartido a un evento pasado tiene que seguir abriendo.
+    const lista = await cuentas();
+    const e = EVENTOS.find(ev => ev.id === id);
+    if (!e) return null;
+    const extra = lista.filter(c => c.profesional.id !== 'pro-demo' && c.profesional.eventosInscriptos.includes(id)).length;
+    return { ...e, inscriptos: Math.min(e.cupo, e.inscriptos + extra) };
   },
 
   async inscribirEvento(profesionalId, eventoId) {

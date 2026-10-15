@@ -4,7 +4,9 @@ import {
   BadgeCheck, CalendarDays, Clock, Hourglass, LayoutDashboard, Lock, LogOut, Mail, Percent,
   Phone, Search, User, Users,
 } from 'lucide-react';
+import { useNavigate } from 'react-router';
 import { View } from '../types';
+import { PanelTab, paths } from '../routes';
 import { useProfesional } from './context';
 import { esModoDemo, mockProfesionales, profesionales } from './mock';
 import {
@@ -12,7 +14,7 @@ import {
 } from './types';
 import { ASESORES, EventoCard, formatoFecha, formatoHora, SedeFiltro, useDatos } from './ui';
 
-type Tab = 'resumen' | 'eventos' | 'descuentos' | 'red' | 'perfil';
+type Tab = PanelTab;
 
 const TABS: [Tab, string, typeof LayoutDashboard][] = [
   ['resumen',    'Resumen',               LayoutDashboard],
@@ -22,9 +24,11 @@ const TABS: [Tab, string, typeof LayoutDashboard][] = [
   ['perfil',     'Mi perfil',             User],
 ];
 
-export function PanelView({ ir }: { ir: (v: View) => void }) {
+export function PanelView({ tab, ir }: { tab: Tab; ir: (v: View) => void }) {
   const { profesional, cargando, salir } = useProfesional();
-  const [tab, setTab] = useState<Tab>('resumen');
+  const navigate = useNavigate();
+  // Cada pestaña tiene su URL (/CPS/panel/eventos…): se puede compartir y el botón atrás funciona.
+  const setTab = (t: Tab) => navigate(paths.panel(t));
   const saliendo = useRef(false);
 
   // Sin sesión → al login. Salvo que el usuario esté cerrando sesión (ahí lo mandamos a la landing).

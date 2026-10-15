@@ -1,5 +1,9 @@
+import { slugify } from '../lib/slug';
 import { CommerceService, ProductFilter } from './commerce';
-import { CATEGORIES, PRODUCTS } from './mock-data';
+import { CATEGORIES, PRODUCTS as RAW_PRODUCTS } from './mock-data';
+
+// En Shopify cada producto trae su handle; en el mock lo derivamos del nombre.
+const PRODUCTS = RAW_PRODUCTS.map(p => ({ ...p, handle: p.handle ?? slugify(p.name) }));
 
 /** Provider de desarrollo: datos locales de mock-data.ts. Se usa mientras no haya credenciales de Shopify. */
 export const mockCommerce: CommerceService = {
@@ -16,6 +20,10 @@ export const mockCommerce: CommerceService = {
     else if (filter.category)          list = list.filter(p => p.category === filter.category);
     if (filter.featured) list = list.filter(p => p.isFeatured);
     return filter.limit ? list.slice(0, filter.limit) : list;
+  },
+
+  async getProductByHandle(handle) {
+    return PRODUCTS.find(p => p.handle === handle) ?? null;
   },
 
   async getProductsByIds(ids) {

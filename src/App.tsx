@@ -7,13 +7,17 @@ import {
   Layers, Navigation, BadgeCheck, LogOut,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router';
+import { CPS, parseRoute, paths, Route, VIEW_PATHS } from './routes';
+import { slugify } from './lib/slug';
 import { View, Product, CartItem, Review } from './types';
 import { commerce } from './services';
-import { useCategories, useProducts, useProductsByIds, useProductsBySkus, useProductSearch } from './services/hooks';
+import { useCategories, useProductByHandle, useProducts, useProductsByIds, useProductsBySkus, useProductSearch } from './services/hooks';
 import { useProfesional } from './profesionales/context';
 import { CirculoView } from './profesionales/CirculoView';
 import { AccesoView } from './profesionales/AccesoView';
 import { PanelView } from './profesionales/PanelView';
+import { EventoView } from './profesionales/EventoView';
 
 // ─────────────────────────────────────────────
 // CONSTANTS
@@ -499,6 +503,7 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
   const openMega  = (cat: string) => { clearTimeout(megaTimer.current); setMegaMenu(cat); };
   const closeMega = () => { megaTimer.current = setTimeout(() => setMegaMenu(null), 120); };
 
+  const navigate = useNavigate();
   const { profesional, salir } = useProfesional();
   const { data: categories }  = useCategories();
   const { data: sugProducts } = useProductSearch(searchQuery, 4);
@@ -532,9 +537,10 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
           </button>
 
           {/* Search */}
-          <div className="flex-1 max-w-2xl relative hidden md:block">
+          <form role="search" className="flex-1 max-w-2xl relative hidden md:block"
+            onSubmit={e => { e.preventDefault(); if (searchQuery.trim().length >= 2) { navigate(paths.buscar(searchQuery)); setShowSugg(false); } }}>
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-            <input type="search" placeholder="Buscar productos, marcas o categorías..."
+            <input type="search" placeholder="Buscar productos, marcas o categorías..." aria-label="Buscar productos"
               value={searchQuery} onChange={handleSearch}
               onFocus={() => setShowSugg(true)}
               onBlur={() => setTimeout(() => setShowSugg(false), 200)}
@@ -548,7 +554,7 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
                     <>
                       <p className="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Categorías</p>
                       {sugCategories.map(c => (
-                        <button key={c.id} onMouseDown={() => navigateTo('category', undefined, c.name)}
+                        <button key={c.id} type="button" onMouseDown={() => navigateTo('category', undefined, c.name)}
                           className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors text-left">
                           <span className="text-xl">{c.icon}</span>
                           <span className="text-sm font-semibold text-slate-700">{c.name}</span>
@@ -560,7 +566,7 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
                     <>
                       <p className="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-t border-slate-50 mt-1">Productos</p>
                       {sugProducts.map(p => (
-                        <button key={p.id} onMouseDown={() => navigateTo('product', p)}
+                        <button key={p.id} type="button" onMouseDown={() => navigateTo('product', p)}
                           className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors text-left">
                           <img src={p.image} alt="" referrerPolicy="no-referrer" className="w-10 h-10 object-contain bg-slate-100 rounded-lg p-1 shrink-0" />
                           <div className="min-w-0">
@@ -569,12 +575,16 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
                           </div>
                         </button>
                       ))}
+                      <button type="button" onMouseDown={() => navigate(paths.buscar(searchQuery))}
+                        className="w-full px-4 py-2.5 border-t border-slate-50 mt-1 text-left text-xs font-bold text-[#1B4F8C] hover:bg-slate-50">
+                        Ver todos los resultados para “{searchQuery.trim()}” →
+                      </button>
                     </>
                   )}
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
+          </form>
 
           {/* Icons */}
           <div className="flex items-center gap-1 ml-auto md:ml-0">
@@ -1125,11 +1135,28 @@ function CategoryView({ category, ctx }: { category: string; ctx: AppCtx }) {
   const { navigateTo, addToCart, favorites, toggleFavorite, compareList, toggleCompare } = ctx;
   const MAX_PRICE = 700000;
 
-  const [priceMin,    setPriceMin]    = useState(0);
-  const [priceMax,    setPriceMax]    = useState(MAX_PRICE);
-  const [selBrands,   setSelBrands]   = useState<string[]>([]);
+  // Filtros en la URL (?orden=menor-precio&marca=cemix,roca&min=0&max=300000): se pueden compartir y pautar.
+  const [params, setParams] = useSearchParams();
+  const SORT_TO_URL: Record<string, string> = { price_asc: 'menor-precio', price_desc: 'mayor-precio' };
+  const sortBy    = Object.entries(SORT_TO_URL).find(([, v]) => v === params.get('orden'))?.[0] ?? 'relevance';
+  const selBrands = params.get('marca')?.split(',').filter(Boolean) ?? [];
+  const priceMin  = Number(params.get('min')) || 0;
+  const priceMax  = Number(params.get('max')) || MAX_PRICE;
+
+  const setParam = (key: string, value: string | null) => setParams(prev => {
+    const next = new URLSearchParams(prev);
+    if (value === null || value === '') next.delete(key); else next.set(key, value);
+    return next;
+  }, { replace: true });
+  const setSortBy   = (v: string) => setParam('orden', SORT_TO_URL[v] ?? null);
+  const setPriceMin = (v: number) => setParam('min', v > 0 ? String(v) : null);
+  const setPriceMax = (v: number) => setParam('max', v < MAX_PRICE ? String(v) : null);
+  const setSelBrands = (update: string[] | ((prev: string[]) => string[])) => {
+    const list = typeof update === 'function' ? update(selBrands) : update;
+    setParam('marca', list.join(','));
+  };
+
   const [selFinishes, setSelFinishes] = useState<string[]>([]);
-  const [sortBy,      setSortBy]      = useState('relevance');
   const [showFilters, setShowFilters] = useState(false);
 
   const { data: categories } = useCategories();
@@ -1144,9 +1171,10 @@ function CategoryView({ category, ctx }: { category: string; ctx: AppCtx }) {
   if (sortBy === 'price_desc') products = [...products].sort((a,b) => b.cashPrice - a.cashPrice);
 
   const allBrands = [...new Set(categoryProducts.map(p => p.brand))];
-  const clearFilters = () => { setPriceMin(0); setPriceMax(MAX_PRICE); setSelBrands([]); setSelFinishes([]); setSortBy('relevance'); };
+  const clearFilters = () => { setParams(new URLSearchParams(), { replace: true }); setSelFinishes([]); };
 
-  const FiltersContent = () => (
+  // Elemento (no componente): si fuera un componente definido acá se remontaría en cada render y cortaría el arrastre del slider.
+  const filtersContent = (
     <div className="space-y-8">
       <div>
         <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Ordenar por</h3>
@@ -1245,7 +1273,7 @@ function CategoryView({ category, ctx }: { category: string; ctx: AppCtx }) {
         <div className="flex gap-8">
           {/* Sidebar desktop */}
           <aside className="hidden md:block w-64 shrink-0">
-            <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm sticky top-24"><FiltersContent /></div>
+            <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm sticky top-24">{filtersContent}</div>
           </aside>
 
           {/* Products */}
@@ -1297,7 +1325,7 @@ function CategoryView({ category, ctx }: { category: string; ctx: AppCtx }) {
                 <h3 className="font-black text-slate-800">Filtros</h3>
                 <button onClick={() => setShowFilters(false)} aria-label="Cerrar filtros"><X className="w-5 h-5 text-slate-500" /></button>
               </div>
-              <div className="overflow-y-auto flex-1 p-5"><FiltersContent /></div>
+              <div className="overflow-y-auto flex-1 p-5">{filtersContent}</div>
               <div className="p-5 border-t border-slate-100 shrink-0">
                 <button onClick={() => setShowFilters(false)} className="w-full py-4 bg-[#1B4F8C] text-white font-black rounded-2xl text-sm">
                   Ver {products.length} productos
@@ -1962,6 +1990,71 @@ function SucursalesView({ ctx }: { ctx: AppCtx }) {
 }
 
 // ─────────────────────────────────────────────
+// SEARCH / 404 / PLACEHOLDER
+// ─────────────────────────────────────────────
+
+/** Mientras carga una página por URL. Tiene que ser motion.div para AnimatePresence. */
+const PagePlaceholder = () => (
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+    className="container mx-auto px-4 md:px-8 max-w-7xl py-10 grid grid-cols-2 md:grid-cols-4 gap-4">
+    <ProductGridSkeleton count={4} />
+  </motion.div>
+);
+
+function SearchView({ ctx }: { ctx: AppCtx }) {
+  const { navigateTo, addToCart, favorites, toggleFavorite, compareList, toggleCompare } = ctx;
+  const [params] = useSearchParams();
+  const q = params.get('q') ?? '';
+  const { data: results, loading } = useProductSearch(q, 48, 0);
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="container mx-auto px-4 md:px-8 max-w-7xl py-10">
+      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Resultados de búsqueda</p>
+      <h1 className="text-2xl md:text-3xl font-black text-slate-800 mb-8">“{q}”</h1>
+      {q.trim().length < 2 ? (
+        <p className="text-slate-500">Escribí al menos 2 letras para buscar.</p>
+      ) : loading ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"><ProductGridSkeleton count={8} /></div>
+      ) : results.length === 0 ? (
+        <div className="text-center py-20 bg-white rounded-2xl border border-slate-100">
+          <Search className="w-10 h-10 mx-auto mb-4 text-slate-300" />
+          <p className="font-bold text-slate-700">No encontramos productos para “{q}”.</p>
+          <button onClick={() => navigateTo('category')} className="mt-4 text-sm font-bold text-[#1B4F8C] hover:underline">Ver el catálogo completo</button>
+        </div>
+      ) : (
+        <>
+          <p className="text-sm text-slate-500 mb-6"><span className="font-black text-slate-800">{results.length}</span> productos</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {results.map(p => (
+              <ProductCard key={p.id} product={p}
+                onClick={() => navigateTo('product', p)} onAddToCart={addToCart}
+                isFavorite={favorites.has(p.id)} onToggleFavorite={toggleFavorite}
+                isComparing={compareList.includes(p.id)} onToggleCompare={toggleCompare} />
+            ))}
+          </div>
+        </>
+      )}
+    </motion.div>
+  );
+}
+
+function NotFoundView({ ctx }: { ctx: AppCtx }) {
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="container mx-auto px-4 max-w-xl py-24 text-center">
+      <p className="text-7xl font-black text-slate-200 mb-4">404</p>
+      <h1 className="text-2xl font-black text-slate-800 mb-2">No encontramos esta página</h1>
+      <p className="text-slate-500 mb-8">Puede que el producto ya no esté disponible o que el link tenga un error.</p>
+      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <button onClick={() => ctx.navigateTo('home')} className="bg-[#1B4F8C] hover:bg-[#163f70] text-white font-bold px-6 py-3 rounded-xl text-sm">Ir al inicio</button>
+        <button onClick={() => ctx.navigateTo('category')} className="border-2 border-slate-200 hover:border-[#1B4F8C] text-slate-700 font-bold px-6 py-3 rounded-xl text-sm">Ver catálogo</button>
+      </div>
+    </motion.div>
+  );
+}
+
+// ─────────────────────────────────────────────
 // COMPARADOR MODAL
 // ─────────────────────────────────────────────
 
@@ -2035,9 +2128,13 @@ function ComparadorModal({ isOpen, onClose, products, onAddToCart }: {
 // ─────────────────────────────────────────────
 
 export default function App() {
-  const [currentView,     setCurrentView]     = useState<View>('home');
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [selectedCat,     setSelectedCat]     = useState<string>('Obra Gruesa');
+  const location = useLocation();
+  const navigate = useNavigate();
+  const route    = parseRoute(location.pathname);
+  const { data: categories, loading: categoriesLoading } = useCategories();
+  const routeCategory = route.view === 'category' && route.handle ? categories.find(c => c.id === route.handle) : undefined;
+  const { data: routeProduct, loading: productLoading } = useProductByHandle(route.view === 'product' ? route.handle : undefined);
+
   const [searchQuery,     setSearchQuery]     = useState('');
   const [showSugg,        setShowSugg]        = useState(false);
   const [cartItems,       setCartItems]       = useState<CartItem[]>(() => {
@@ -2060,14 +2157,51 @@ export default function App() {
 
   const cartCount = cartItems.reduce((a, i) => a + i.quantity, 0);
 
+  // Cada página tiene su URL; navigateTo traduce vista (+ producto / nombre de categoría) a path.
   const navigateTo = (view: View, product?: Product, category?: string) => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (product)  setSelectedProduct(product);
-    if (category) setSelectedCat(category);
-    setCurrentView(view);
+    let path: string;
+    if (view === 'product' && product) {
+      path = paths.producto(product.handle ?? slugify(product.name));
+    } else if (view === 'category') {
+      path = paths.categoria(category ? (categories.find(c => c.name === category)?.id ?? slugify(category)) : undefined);
+    } else {
+      path = VIEW_PATHS[view] ?? paths.home();
+    }
+    navigate(path);
+  };
+
+  // /cps, /Cps… → /CPS: una sola URL oficial para el Círculo (mejor para Analytics y para pautar).
+  useEffect(() => {
+    const m = location.pathname.match(/^\/cps(?=\/|$)/i);
+    if (m && m[0] !== CPS) navigate(CPS + location.pathname.slice(m[0].length) + location.search, { replace: true });
+  }, [location.pathname, location.search, navigate]);
+
+  // Al cambiar de página: arriba de todo y ficha de producto reseteada. (Los filtros por query string no cambian el pathname.)
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
     setActiveTab('detalles');
     setQuantity(1);
-  };
+    setShowSugg(false);
+  }, [location.pathname]);
+
+  // Título de la pestaña por página (también lo usan Analytics y el Pixel).
+  useEffect(() => {
+    const titles: Partial<Record<Route['view'], string>> = {
+      'category':      routeCategory?.name ?? 'Catálogo',
+      'product':       routeProduct?.name,
+      'search':        'Búsqueda',
+      'calculadora':   'Calculadora de materiales',
+      'sucursales':    'Sucursales',
+      'profesionales': 'Círculo de Profesionales',
+      'pro-ingresar':  'Ingresar · Círculo de Profesionales',
+      'pro-registro':  'Alta · Círculo de Profesionales',
+      'panel':         'Mi panel · Círculo de Profesionales',
+      'evento':        'Evento · Círculo de Profesionales',
+      'not-found':     'Página no encontrada',
+    };
+    const t = titles[route.view];
+    document.title = t ? `${t} | Samaco` : 'Samaco - Materiales de Construcción | Mendoza';
+  }, [route.view, routeCategory?.name, routeProduct?.name]);
 
   const addToCart = (product: Product) => {
     setCartItems(prev => {
@@ -2130,18 +2264,29 @@ export default function App() {
       />
       <main className="flex-1">
         <AnimatePresence mode="wait">
-          {currentView === 'home'        && <HomeView        key="home"          ctx={ctx} />}
-          {currentView === 'category'    && <CategoryView    key={`cat-${selectedCat}`} category={selectedCat} ctx={ctx} />}
-          {currentView === 'calculadora' && <CalculadoraView key="calc"          ctx={ctx} />}
-          {currentView === 'sucursales'  && <SucursalesView  key="suc"           ctx={ctx} />}
-          {currentView === 'profesionales' && <CirculoView key="circulo" ir={v => navigateTo(v)} />}
-          {currentView === 'pro-ingresar'  && <AccesoView  key="acceso"  modo="ingresar" ir={v => navigateTo(v)} />}
-          {currentView === 'pro-registro'  && <AccesoView  key="acceso"  modo="registro" ir={v => navigateTo(v)} />}
-          {currentView === 'panel'         && <PanelView   key="panel"   ir={v => navigateTo(v)} />}
-          {currentView === 'product'     && selectedProduct && (
+          {route.view === 'home'        && <HomeView        key="home"          ctx={ctx} />}
+          {route.view === 'category' && (
+            !route.handle                    ? <CategoryView key="cat-all" category="" ctx={ctx} /> :
+            routeCategory                    ? <CategoryView key={`cat-${route.handle}`} category={routeCategory.name} ctx={ctx} /> :
+            categoriesLoading                ? <PagePlaceholder key="cat-loading" /> :
+                                               <NotFoundView key="404" ctx={ctx} />
+          )}
+          {route.view === 'search'      && <SearchView      key="search"        ctx={ctx} />}
+          {route.view === 'calculadora' && <CalculadoraView key="calc"          ctx={ctx} />}
+          {route.view === 'sucursales'  && <SucursalesView  key="suc"           ctx={ctx} />}
+          {route.view === 'profesionales' && <CirculoView key="circulo" ir={v => navigateTo(v)} />}
+          {route.view === 'pro-ingresar'  && <AccesoView  key="acceso"  modo="ingresar" ir={v => navigateTo(v)} />}
+          {route.view === 'pro-registro'  && <AccesoView  key="acceso"  modo="registro" ir={v => navigateTo(v)} />}
+          {route.view === 'panel'         && <PanelView   key="panel"   tab={route.tab} ir={v => navigateTo(v)} />}
+          {route.view === 'evento'        && <EventoView  key={`ev-${route.id}`} id={route.id} ir={v => navigateTo(v)} />}
+          {route.view === 'not-found'     && <NotFoundView key="404" ctx={ctx} />}
+          {route.view === 'product' && !routeProduct && (
+            productLoading ? <PagePlaceholder key="prod-loading" /> : <NotFoundView key="404" ctx={ctx} />
+          )}
+          {route.view === 'product' && routeProduct && (
             <ProductDetailView
-              key={`prod-${selectedProduct.id}`}
-              product={selectedProduct}
+              key={`prod-${routeProduct.id}`}
+              product={routeProduct}
               ctx={ctx}
               quantity={quantity}
               setQuantity={setQuantity}
