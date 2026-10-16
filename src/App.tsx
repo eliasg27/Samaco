@@ -12,12 +12,14 @@ import { CPS, parseRoute, paths, Route, VIEW_PATHS } from './routes';
 import { slugify } from './lib/slug';
 import { View, Product, CartItem, Review } from './types';
 import { commerce } from './services';
-import { useCategories, useProductByHandle, useProducts, useProductsByIds, useProductsBySkus, useProductSearch } from './services/hooks';
+import { useCategories, useProductByHandle, useProducts, useProductsByIds, useProductSearch } from './services/hooks';
 import { useProfesional } from './profesionales/context';
 import { CirculoView } from './profesionales/CirculoView';
 import { AccesoView } from './profesionales/AccesoView';
 import { PanelView } from './profesionales/PanelView';
 import { EventoView } from './profesionales/EventoView';
+import { CarruselMediosPago } from './financiacion/CarruselMediosPago';
+import { FinanciacionView } from './financiacion/FinanciacionView';
 
 // ─────────────────────────────────────────────
 // CONSTANTS
@@ -48,14 +50,6 @@ const HERO_SLIDES = [
     bg: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&q=80&w=1400',
     badgeColor: '#1B4F8C',
   },
-];
-
-const PAYMENT_METHODS = [
-  { name: 'Transferencia / Débito', benefit: '15% OFF',              detail: 'Todos los días, sin mínimo de compra',         color: 'bg-emerald-500', textColor: 'text-emerald-700' },
-  { name: 'BNA+',                   benefit: '18 cuotas sin interés', detail: 'Mínimo $400.000 · Hasta 30/04/26',             color: 'bg-[#1B4F8C]',  textColor: 'text-[#1B4F8C]'  },
-  { name: 'Visa / Mastercard',      benefit: '9 cuotas sin interés',  detail: '3 cuotas -5% · 6 cuotas -3% · 12 fijas',      color: 'bg-purple-600',  textColor: 'text-purple-700'  },
-  { name: 'NaranjaX / Cabal',       benefit: '6 cuotas sin interés',  detail: 'Financiación especial para clientes adheridos', color: 'bg-orange-500',  textColor: 'text-orange-700'  },
-  { name: 'Amex no bancaria',       benefit: '6 cuotas sin interés',  detail: 'American Express participante del programa',    color: 'bg-slate-700',   textColor: 'text-slate-700'   },
 ];
 
 const WHY_SAMACO = [
@@ -110,44 +104,6 @@ const MOCK_REVIEWS: Record<string, Review[]> = {
     { id: 2, rating: 4, userName: 'Horacio T.',    date: '1 de Febrero, 2025', title: 'Muy buen producto',                          comment: 'Calidad de primera, el color es uniforme y muy lindo. Samaco lo cambió sin problema el material que llegó con defecto.' },
   ],
 };
-
-const KITS = [
-  {
-    id: 'kit-losa',    name: 'Kit Losa 50m²',
-    icon: '🏗️',
-    description: 'Cemento, hierro y bloques para una losa de 50m².',
-    badge: 'Más vendido',
-    color: 'from-slate-700 to-slate-500',
-    skus: ['CM-LN50', 'HR-AC12', 'BL-H100'],
-  },
-  {
-    id: 'kit-pintura',
-    name: 'Kit Pintura Exterior',
-    icon: '🎨',
-    description: 'Látex premium + fijador para 100m² de fachada.',
-    badge: '12% ahorro',
-    color: 'from-[#E8593C] to-orange-400',
-    skus: ['PT-TE20', 'FJ-PX4'],
-  },
-  {
-    id: 'kit-bano',
-    name: 'Kit Baño Completo',
-    icon: '🚿',
-    description: 'Grifería, ducha y porcelanato para renovar un baño.',
-    badge: 'Popular',
-    color: 'from-[#1B4F8C] to-blue-400',
-    skus: ['VL-001', 'DR-L20', 'PD-060'],
-  },
-  {
-    id: 'kit-plomeria',
-    name: 'Kit Agua Caliente',
-    icon: '🔧',
-    description: 'Termotanque Rheem 80L + caños PVC para ACS.',
-    badge: 'Nuevo',
-    color: 'from-emerald-700 to-emerald-500',
-    skus: ['TT-RH80', 'PV-TG1'],
-  },
-];
 
 const SUCURSALES = [
   {
@@ -495,7 +451,12 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
   const megaTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60);
+    // Histéresis: al compactarse el header la página se mueve ~56px; con un único umbral (60px) eso lo
+    // hacía cruzar el límite de ida y vuelta y parpadeaba. Compacta pasando 120px y se expande recién arriba de todo.
+    const onScroll = () => {
+      const y = window.scrollY;
+      setScrolled(prev => (prev ? y > 8 : y > 120));
+    };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
@@ -517,7 +478,7 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
         <div className={`bg-[#1B4F8C] text-white overflow-x-auto no-scrollbar transition-all duration-300 ${scrolled ? 'h-0 overflow-hidden' : ''}`}>
           <div className="flex items-center justify-between px-4 md:px-8 py-2 gap-8 whitespace-nowrap text-[10px] font-bold uppercase tracking-widest min-w-max">
             <span className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[#E8593C] animate-pulse" />Envío gratis en compras +$900.000</span>
-            <span>15% OFF débito / transferencia</span>
+            <button onClick={() => navigateTo('financiacion')} className="hover:text-[#E8593C] transition-colors uppercase tracking-widest">15% OFF débito / transferencia</button>
             <a href="https://wa.me/5492615555555" target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-green-300 transition-colors"><Phone className="w-3 h-3" />WhatsApp atención</a>
             <span className="flex items-center gap-1.5"><MapPin className="w-3 h-3" />4 sucursales en Mendoza</span>
             <button onClick={() => navigateTo('profesionales')} className="flex items-center gap-1.5 hover:text-[#E8593C] transition-colors uppercase tracking-widest">
@@ -845,14 +806,11 @@ interface AppCtx {
 // HOME VIEW
 // ─────────────────────────────────────────────
 
-const KIT_SKUS = KITS.flatMap(k => k.skus);
-
 function HomeView({ ctx }: { ctx: AppCtx }) {
   const { navigateTo, addToCart, favorites, toggleFavorite, compareList, toggleCompare } = ctx;
   const [slide, setSlide] = useState(0);
   const { data: categories } = useCategories();
   const { data: featured, loading: featuredLoading } = useProducts({ featured: true, limit: 8 });
-  const { data: kitCatalog } = useProductsBySkus(KIT_SKUS);
 
   useEffect(() => {
     const t = setInterval(() => setSlide(s => (s + 1) % HERO_SLIDES.length), 5000);
@@ -987,52 +945,6 @@ function HomeView({ ctx }: { ctx: AppCtx }) {
         </div>
       </section>
 
-      {/* ── KITS / PROYECTOS ── */}
-      <section className="py-14 bg-slate-50 border-y border-slate-100">
-        <div className="container mx-auto px-4 md:px-8 max-w-7xl">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <p className="text-[10px] font-black text-[#E8593C] uppercase tracking-widest mb-1">Armá tu obra</p>
-              <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">Kits de productos</h2>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {KITS.map(kit => {
-              const kitProducts = kit.skus.map(sku => kitCatalog.find(p => p.sku === sku)).filter(p => p !== undefined);
-              if (kitProducts.length === 0) return null;
-              const totalCash = kitProducts.reduce((acc, p) => acc + p.cashPrice, 0);
-              return (
-                <motion.div key={kit.id} whileHover={{ y: -4 }} transition={{ duration: 0.2 }}
-                  className={`relative bg-gradient-to-br ${kit.color} rounded-2xl p-5 text-white overflow-hidden shadow-lg flex flex-col`}>
-                  {kit.badge && (
-                    <span className="absolute top-4 right-4 bg-white/20 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">{kit.badge}</span>
-                  )}
-                  <span className="text-3xl mb-3 block">{kit.icon}</span>
-                  <h3 className="font-black text-base mb-1">{kit.name}</h3>
-                  <p className="text-xs opacity-80 mb-4 leading-relaxed flex-1">{kit.description}</p>
-                  <div className="space-y-1 mb-4">
-                    {kitProducts.map(p => (
-                      <p key={p.id} className="text-[10px] opacity-70 flex items-center gap-1.5">
-                        <span className="w-1 h-1 rounded-full bg-white/60 shrink-0" />
-                        <span className="truncate">{p.name}</span>
-                      </p>
-                    ))}
-                  </div>
-                  <div className="border-t border-white/20 pt-3 mb-3">
-                    <p className="text-[10px] opacity-60 mb-0.5">Precio del kit</p>
-                    <p className="text-xl font-black">{fmt(totalCash)}</p>
-                  </div>
-                  <button onClick={() => kitProducts.forEach(p => addToCart(p))}
-                    className="w-full py-2.5 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-xl transition-colors">
-                    Agregar kit al carrito
-                  </button>
-                </motion.div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
       {/* ── CÍRCULO DE PROFESIONALES ── */}
       <section className="bg-[#0d2a4d] text-white">
         <div className="container mx-auto px-4 md:px-8 max-w-7xl py-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -1076,18 +988,7 @@ function HomeView({ ctx }: { ctx: AppCtx }) {
       <section className="bg-white py-14 border-t border-slate-100">
         <div className="container mx-auto px-4 md:px-8 max-w-7xl">
           <h2 className="text-2xl md:text-3xl font-black text-slate-800 mb-8">Medios de pago</h2>
-          <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
-            {PAYMENT_METHODS.map((pm, i) => (
-              <div key={i} className="shrink-0 w-64 bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow">
-                <div className={`w-10 h-10 rounded-xl ${pm.color} flex items-center justify-center text-white mb-4`}>
-                  <CreditCard className="w-5 h-5" />
-                </div>
-                <p className="text-xs font-bold text-slate-500 mb-1">{pm.name}</p>
-                <p className={`text-xl font-black ${pm.textColor} mb-1`}>{pm.benefit}</p>
-                <p className="text-[11px] text-slate-400 leading-snug">{pm.detail}</p>
-              </div>
-            ))}
-          </div>
+          <CarruselMediosPago />
         </div>
       </section>
 
@@ -2192,6 +2093,7 @@ export default function App() {
       'search':        'Búsqueda',
       'calculadora':   'Calculadora de materiales',
       'sucursales':    'Sucursales',
+      'financiacion':  'Financiación y medios de pago',
       'profesionales': 'Círculo de Profesionales',
       'pro-ingresar':  'Ingresar · Círculo de Profesionales',
       'pro-registro':  'Alta · Círculo de Profesionales',
@@ -2274,6 +2176,7 @@ export default function App() {
           {route.view === 'search'      && <SearchView      key="search"        ctx={ctx} />}
           {route.view === 'calculadora' && <CalculadoraView key="calc"          ctx={ctx} />}
           {route.view === 'sucursales'  && <SucursalesView  key="suc"           ctx={ctx} />}
+          {route.view === 'financiacion' && <FinanciacionView key="fin" />}
           {route.view === 'profesionales' && <CirculoView key="circulo" ir={v => navigateTo(v)} />}
           {route.view === 'pro-ingresar'  && <AccesoView  key="acceso"  modo="ingresar" ir={v => navigateTo(v)} />}
           {route.view === 'pro-registro'  && <AccesoView  key="acceso"  modo="registro" ir={v => navigateTo(v)} />}

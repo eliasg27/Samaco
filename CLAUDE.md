@@ -46,11 +46,18 @@ React Router (`BrowserRouter`) + `vercel.json` con rewrite a `index.html`. Todas
 | Producto | `/productos/:handle` |
 | Búsqueda | `/buscar?q=` |
 | Calculadora · Sucursales | `/calculadora` · `/sucursales` |
+| Financiación | `/financiacion` (con `#id` del medio de pago, p. ej. `#visa-mastercard`) |
 | Círculo de Profesionales | `/CPS` · `/CPS/ingresar` · `/CPS/registro` · `/CPS/panel[/eventos|descuentos|red|perfil]` · `/CPS/eventos/:id` |
 
 - Los handles son los de Shopify (en el mock se derivan del nombre con `lib/slug.ts`).
 - `/cps` en cualquier combinación de mayúsculas redirige a `/CPS`.
 - Cada vista dentro de `<AnimatePresence>` tiene que tener como raíz un `motion.div`, incluso en estados de carga o vacíos; si no, la transición queda colgada.
+
+## Medios de pago (`src/financiacion/`)
+
+- `data.ts`: medios de pago, condiciones y `vigenteHasta`. Una promo vencida se oculta sola del carrusel de la home y de `/financiacion`.
+- `CarruselMediosPago.tsx` (home): avanza cada 4 s, se pausa con hover/foco/touch y respeta `prefers-reduced-motion`.
+- `FinanciacionView.tsx`: listado con condiciones + simulador de cuotas.
 
 ## Círculo de Profesionales (`src/profesionales/`)
 

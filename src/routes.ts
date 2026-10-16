@@ -17,6 +17,7 @@ export const paths = {
   buscar:      (q: string) => `/buscar?q=${encodeURIComponent(q.trim())}`,
   calculadora: () => '/calculadora',
   sucursales:  () => '/sucursales',
+  financiacion: () => '/financiacion',
   cps:         () => CPS,
   ingresar:    () => `${CPS}/ingresar`,
   registro:    () => `${CPS}/registro`,
@@ -30,6 +31,7 @@ export const VIEW_PATHS: Partial<Record<View, string>> = {
   'category':      paths.categoria(),
   'calculadora':   paths.calculadora(),
   'sucursales':    paths.sucursales(),
+  'financiacion':  paths.financiacion(),
   'profesionales': paths.cps(),
   'pro-ingresar':  paths.ingresar(),
   'pro-registro':  paths.registro(),
@@ -43,6 +45,7 @@ export type Route =
   | { view: 'search' }
   | { view: 'calculadora' }
   | { view: 'sucursales' }
+  | { view: 'financiacion' }
   | { view: 'profesionales' }
   | { view: 'pro-ingresar' }
   | { view: 'pro-registro' }
@@ -61,6 +64,7 @@ export function parseRoute(pathname: string): Route {
   if (m('/buscar', pathname))                   return { view: 'search' };
   if (m('/calculadora', pathname))              return { view: 'calculadora' };
   if (m('/sucursales', pathname))               return { view: 'sucursales' };
+  if (m('/financiacion', pathname))             return { view: 'financiacion' };
   if (m(CPS, pathname))                         return { view: 'profesionales' };
   if (m(`${CPS}/ingresar`, pathname))           return { view: 'pro-ingresar' };
   if (m(`${CPS}/registro`, pathname))           return { view: 'pro-registro' };

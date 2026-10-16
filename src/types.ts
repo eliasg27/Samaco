@@ -26,7 +26,7 @@ export interface Product {
 }
 
 export type View =
-  | 'home' | 'category' | 'product' | 'calculadora' | 'sucursales'
+  | 'home' | 'category' | 'product' | 'calculadora' | 'sucursales' | 'financiacion'
   // Círculo de Profesionales
   | 'profesionales' | 'pro-ingresar' | 'pro-registro' | 'panel';
 
