@@ -2,6 +2,7 @@ import { ArrowRight, CreditCard, Sparkles } from 'lucide-react';
 import { Link } from 'react-router';
 import { paths } from '../routes';
 import { CANALES, Canal, mediosVigentes, promoDestacadaVigente } from './data';
+import { LogosPago } from './logos';
 
 interface Tarjeta {
   id: string;
@@ -58,12 +59,8 @@ export function CarruselMediosPago() {
         </div>
         <p className={`text-2xl font-black leading-tight mb-1 ${t.destacada ? 'text-white' : t.textColor}`}>{t.beneficio}</p>
         <p className={`text-xs font-semibold mb-4 ${t.destacada ? 'text-slate-300' : 'text-slate-500'}`}>{t.nombre}</p>
-        <div className="flex flex-wrap gap-1 mt-auto">
-          {t.tarjetas.slice(0, 4).map(n => (
-            <span key={n} className={`text-[10px] font-bold px-2 py-0.5 rounded-full border
-              ${t.destacada ? 'border-white/20 text-white/80' : 'border-slate-200 text-slate-500'}`}>{n}</span>
-          ))}
-          {t.tarjetas.length > 4 && <span className="text-[10px] font-bold px-1 text-slate-400">+{t.tarjetas.length - 4}</span>}
+        <div className="mt-auto">
+          <LogosPago tarjetas={t.tarjetas} max={4} />
         </div>
       </div>
     </Link>

@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Calculator, Info, MapPin, Monitor, Sparkles } from 'lucide-react';
 import { useLocation } from 'react-router';
 import { CANALES, Canal, LEGAL, MedioPago, mediosVigentes, Plan, promoDestacadaVigente } from './data';
+import { LogosPago } from './logos';
 
 const fmt = (n: number) => '$' + Math.round(n).toLocaleString('es-AR');
 const fechaCorta = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -81,7 +82,7 @@ export function FinanciacionView() {
           </div>
           <PlanesTabla medio={m} />
           <div className="mt-4 flex flex-wrap gap-2">
-            {m.tarjetas.map(t => <span key={t} className="text-[11px] font-bold bg-white border border-slate-200 text-slate-600 px-2.5 py-1 rounded-full">{t}</span>)}
+            <LogosPago tarjetas={m.tarjetas} size="md" />
           </div>
           {(m.notas.length > 0 || m.vigenteHasta) && (
             <p className="mt-3 text-xs text-slate-400">
@@ -108,7 +109,7 @@ export function FinanciacionView() {
               <p className="text-4xl md:text-5xl font-black leading-none">{promo.titulo}</p>
               <p className="text-sm text-slate-200 mt-2">{promo.bajada}.</p>
               <div className="flex flex-wrap gap-1.5 mt-4">
-                {promo.tarjetas.map(t => <span key={t} className="text-[11px] font-bold bg-white text-[#1B4F8C] px-2.5 py-1 rounded-full">{t}</span>)}
+                <LogosPago tarjetas={promo.tarjetas} size="md" />
               </div>
               <p className="text-[11px] text-slate-300 mt-4">Compra presencial y web. Vigente hasta el {vigencia(promo.vigenteHasta)} o hasta agotar stock.</p>
             </div>
