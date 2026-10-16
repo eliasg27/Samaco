@@ -121,7 +121,7 @@ function Credencial({ profesional }: { profesional: Profesional }) {
       <div className="absolute -right-4 bottom-[-60px] w-40 h-40 rounded-full bg-[#E8593C]/20" />
       <div className="relative flex items-start justify-between">
         <div>
-          <p className="font-black italic tracking-tighter text-xl">SAMACO</p>
+          <img src="/logo-samaco-blanco.png" alt="Samaco" width={791} height={217} className="h-6 w-auto mb-1" />
           <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-white/60">Círculo de Profesionales</p>
         </div>
         {aprobado

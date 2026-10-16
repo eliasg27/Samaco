@@ -490,11 +490,9 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
         {/* Main row */}
         <div className={`container mx-auto px-4 md:px-8 max-w-7xl flex items-center gap-4 md:gap-8 transition-all duration-300 ${scrolled ? 'h-14' : 'h-20'}`}>
           {/* Logo */}
-          <button onClick={() => navigateTo('home')} aria-label="Inicio" className="flex items-center gap-2.5 shrink-0 group">
-            <div className={`bg-[#1B4F8C] group-hover:bg-[#E8593C] rounded-xl flex items-center justify-center text-white shadow-md transition-all duration-300 ${scrolled ? 'w-8 h-8' : 'w-10 h-10'}`}>
-              <span className="font-black text-lg italic leading-none">S</span>
-            </div>
-            <span className={`font-black text-[#1B4F8C] tracking-tighter italic transition-all duration-300 ${scrolled ? 'text-xl' : 'text-2xl'}`}>SAMACO</span>
+          <button onClick={() => navigateTo('home')} aria-label="Samaco — Inicio" className="shrink-0 transition-opacity hover:opacity-80">
+            <img src="/logo-samaco.png" alt="Samaco" width={791} height={217}
+              className={`w-auto transition-all duration-300 ${scrolled ? 'h-7' : 'h-9'}`} />
           </button>
 
           {/* Search */}
@@ -658,7 +656,7 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
               aria-label="Menú móvil"
               className="fixed top-0 left-0 h-full w-4/5 max-w-xs bg-white z-[151] flex flex-col shadow-2xl">
               <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-                <span className="font-black text-[#1B4F8C] text-xl italic">SAMACO</span>
+                <img src="/logo-samaco.png" alt="Samaco" width={791} height={217} className="h-7 w-auto" />
                 <button onClick={() => setMobileOpen(false)} aria-label="Cerrar menú"><X className="w-5 h-5 text-slate-500" /></button>
               </div>
               <div className="overflow-y-auto flex-1 py-4">
@@ -713,12 +711,7 @@ const Footer = ({ navigateTo }: { navigateTo: (v: View, p?: Product, c?: string)
     <div className="container mx-auto px-6 md:px-8 max-w-7xl py-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
       {/* Brand */}
       <div>
-        <div className="flex items-center gap-2.5 mb-4">
-          <div className="w-9 h-9 bg-[#E8593C] rounded-xl flex items-center justify-center">
-            <span className="font-black text-lg italic leading-none">S</span>
-          </div>
-          <span className="font-black text-2xl tracking-tighter italic">SAMACO</span>
-        </div>
+        <img src="/logo-samaco-blanco.png" alt="Samaco" width={791} height={217} className="h-9 w-auto mb-5" />
         <p className="text-slate-400 text-sm leading-relaxed mb-5">Materiales de construcción y hogar en Mendoza. Más de 5.000 productos en stock con las mejores marcas del mercado.</p>
         <div className="flex gap-3">
           {([['Facebook', Facebook], ['Instagram', Instagram], ['Twitter', Twitter]] as const).map(([label, Icon]) => (
