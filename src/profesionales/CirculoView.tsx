@@ -5,7 +5,7 @@ import { View } from '../types';
 import { profesionales } from './mock';
 import { useProfesional } from './context';
 import { Beneficio, Estudio, Evento, Sede, SEDES } from './types';
-import { BeneficioCard, EventoCard, SeccionTitulo, SedeFiltro, useDatos } from './ui';
+import { BeneficioCard, CPS_LOGO, EventoCard, SeccionTitulo, SedeFiltro, useDatos } from './ui';
 
 const PREGUNTAS = [
   ['¿Quiénes pueden sumarse?', 'Arquitectos/as, ingenieros/as civiles, maestros mayores de obra y diseñadores/as de interiores con matrícula vigente, que trabajen en Mendoza o San Juan.'],
@@ -39,10 +39,14 @@ export function CirculoView({ ir }: { ir: (v: View) => void }) {
           referrerPolicy="no-referrer" className="absolute inset-0 w-full h-full object-cover opacity-25" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#0d2a4d] via-[#0d2a4d]/85 to-transparent" />
         <div className="relative container mx-auto px-6 md:px-8 max-w-7xl py-20 md:py-28">
-          <p className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-[#E8593C] mb-5">
+          {/* El logo es el título de la página; el alt mantiene el texto para buscadores y lectores de pantalla. */}
+          <h1 className="mb-6">
+            <img src={CPS_LOGO.horizontalBlanco.src} width={CPS_LOGO.horizontalBlanco.w} height={CPS_LOGO.horizontalBlanco.h}
+              alt="Círculo de Profesionales Samaco" className="h-20 md:h-28 w-auto" />
+          </h1>
+          <p className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-[#E8593C] mb-4">
             <BadgeCheck className="w-4 h-4" />Mendoza · San Juan
           </p>
-          <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-none mb-5 max-w-2xl">Círculo de Profesionales Samaco</h1>
           <p className="text-slate-300 text-base md:text-lg leading-relaxed max-w-xl mb-8">
             El espacio para arquitectos, ingenieros, MMO y diseñadores que especifican y construyen con Samaco.
             Precios profesionales, eventos con las marcas y un asesor dedicado para tus obras.

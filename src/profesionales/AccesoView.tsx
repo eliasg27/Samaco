@@ -1,6 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { motion } from 'motion/react';
-import { BadgeCheck, Eye, EyeOff, Info } from 'lucide-react';
+import { Eye, EyeOff, Info } from 'lucide-react';
+import { CPS_LOGO } from './ui';
 import { View } from '../types';
 import { useProfesional } from './context';
 import { esModoDemo } from './mock';
@@ -46,8 +47,10 @@ export function AccesoView({ modo, ir }: { modo: 'ingresar' | 'registro'; ir: (v
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
         {/* Lateral */}
         <aside className="lg:col-span-2 bg-[#0d2a4d] text-white rounded-3xl p-8">
-          <BadgeCheck className="w-8 h-8 text-[#E8593C] mb-4" />
-          <h1 className="text-2xl font-black tracking-tight mb-2">Círculo de Profesionales</h1>
+          <h1 className="mb-6">
+            <img src={CPS_LOGO.verticalBlanco.src} width={CPS_LOGO.verticalBlanco.w} height={CPS_LOGO.verticalBlanco.h}
+              alt="Círculo de Profesionales Samaco" className="h-36 w-auto" />
+          </h1>
           <p className="text-sm text-slate-300 leading-relaxed mb-6">Precios profesionales, eventos en Mendoza y San Juan, y un asesor dedicado para tus obras.</p>
           <ul className="space-y-2.5 text-sm text-slate-200">
             {['Alta con matrícula profesional', 'Validación por el equipo de Samaco', 'Credencial digital de socio', 'Eventos en Mendoza y San Juan'].map(t => (

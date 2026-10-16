@@ -12,7 +12,7 @@ import { esModoDemo, mockProfesionales, profesionales } from './mock';
 import {
   COLEGIOS, Descuento, Estudio, Evento, Profesional, PROFESIONES, Sede, SEDES,
 } from './types';
-import { ASESORES, EventoCard, formatoFecha, formatoHora, SedeFiltro, useDatos } from './ui';
+import { ASESORES, CPS_LOGO, EventoCard, formatoFecha, formatoHora, SedeFiltro, useDatos } from './ui';
 
 type Tab = PanelTab;
 
@@ -47,7 +47,8 @@ export function PanelView({ tab, ir }: { tab: Tab; ir: (v: View) => void }) {
       {/* Encabezado */}
       <section className="bg-[#0d2a4d] text-white">
         <div className="container mx-auto px-4 md:px-8 max-w-7xl pt-10 pb-6">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#E8593C] mb-2">Círculo de Profesionales</p>
+          <img src={CPS_LOGO.horizontalBlanco.src} width={CPS_LOGO.horizontalBlanco.w} height={CPS_LOGO.horizontalBlanco.h}
+            alt="Círculo de Profesionales Samaco" className="h-10 w-auto mb-6" />
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
               <h1 className="text-3xl md:text-4xl font-black tracking-tight">Hola, {profesional.nombre}</h1>
@@ -118,12 +119,10 @@ function Credencial({ profesional }: { profesional: Profesional }) {
   return (
     <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1B4F8C] via-[#163f70] to-[#0d2a4d] text-white p-6 shadow-xl aspect-[1.6/1] max-w-md flex flex-col justify-between">
       <div className="absolute -right-10 -top-10 w-48 h-48 rounded-full bg-white/5" />
-      <div className="absolute -right-4 bottom-[-60px] w-40 h-40 rounded-full bg-[#E8593C]/20" />
-      <div className="relative flex items-start justify-between">
-        <div>
-          <img src="/logo-samaco-blanco.png" alt="Samaco" width={791} height={217} className="h-6 w-auto mb-1" />
-          <p className="text-[9px] font-bold uppercase tracking-[0.25em] text-white/60">Círculo de Profesionales</p>
-        </div>
+      <img src={CPS_LOGO.isotipoBlanco.src} alt="" aria-hidden className="absolute -right-10 -bottom-12 w-48 h-48 opacity-10" />
+      <div className="relative flex items-start justify-between gap-3">
+        <img src={CPS_LOGO.horizontalBlanco.src} width={CPS_LOGO.horizontalBlanco.w} height={CPS_LOGO.horizontalBlanco.h}
+          alt="Círculo de Profesionales Samaco" className="h-9 w-auto" />
         {aprobado
           ? <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase bg-emerald-400/20 text-emerald-200 px-2 py-1 rounded-full"><BadgeCheck className="w-3 h-3" />Activo</span>
           : <span className="text-[10px] font-black uppercase bg-amber-400/20 text-amber-200 px-2 py-1 rounded-full">En revisión</span>}

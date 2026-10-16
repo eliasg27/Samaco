@@ -18,6 +18,7 @@ import { CirculoView } from './profesionales/CirculoView';
 import { AccesoView } from './profesionales/AccesoView';
 import { PanelView } from './profesionales/PanelView';
 import { EventoView } from './profesionales/EventoView';
+import { CPS_LOGO } from './profesionales/ui';
 import { CarruselMediosPago } from './financiacion/CarruselMediosPago';
 import { FinanciacionView } from './financiacion/FinanciacionView';
 
@@ -581,7 +582,7 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
                         </button>
                         <button onClick={() => { navigateTo('profesionales'); setAccountOpen(false); }}
                           className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 border-t border-slate-100 transition-colors text-sm font-medium text-slate-700 text-left">
-                          <BadgeCheck className="w-4 h-4 text-[#1B4F8C] shrink-0" />
+                          <img src={CPS_LOGO.isotipo.src} alt="" aria-hidden className="w-7 h-7 shrink-0" />
                           <span>Círculo de Profesionales<span className="block text-[11px] text-slate-400 font-normal">Para arquitectos y profesionales matriculados</span></span>
                         </button>
                       </>
@@ -941,8 +942,9 @@ function HomeView({ ctx }: { ctx: AppCtx }) {
       {/* ── CÍRCULO DE PROFESIONALES ── */}
       <section className="bg-[#0d2a4d] text-white">
         <div className="container mx-auto px-4 md:px-8 max-w-7xl py-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="flex gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-[#E8593C] flex items-center justify-center shrink-0"><BadgeCheck className="w-6 h-6" /></div>
+          <div className="flex gap-5 items-center">
+            <img src={CPS_LOGO.isotipoBlanco.src} width={CPS_LOGO.isotipoBlanco.w} height={CPS_LOGO.isotipoBlanco.h} alt="" aria-hidden
+              className="w-16 h-16 md:w-20 md:h-20 shrink-0" />
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest text-[#E8593C] mb-1">Arquitectos · Ingenieros · MMO · Diseñadores</p>
               <h2 className="text-2xl md:text-3xl font-black tracking-tight">Círculo de Profesionales Samaco</h2>

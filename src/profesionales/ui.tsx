@@ -4,6 +4,15 @@ import { Link } from 'react-router';
 import { paths } from '../routes';
 import { Beneficio, Evento, Sede, SEDES, TIPOS_EVENTO } from './types';
 
+/** Logos oficiales del CPS (public/cps). Color para fondos claros, blanco para fondos oscuros. */
+export const CPS_LOGO = {
+  horizontal:       { src: '/cps/cps-horizontal.webp',        w: 900, h: 305 },
+  horizontalBlanco: { src: '/cps/cps-horizontal-blanco.webp', w: 900, h: 306 },
+  verticalBlanco:   { src: '/cps/cps-vertical-blanco.webp',   w: 520, h: 558 },
+  isotipo:          { src: '/cps/cps-isotipo.webp',           w: 256, h: 255 },
+  isotipoBlanco:    { src: '/cps/cps-isotipo-blanco.webp',    w: 512, h: 511 },
+} as const;
+
 /** Carga asíncrona simple para los datos del Círculo. */
 export function useDatos<T>(fetcher: () => Promise<T>, inicial: T, deps: unknown[] = []) {
   const [data, setData] = useState<T>(inicial);
