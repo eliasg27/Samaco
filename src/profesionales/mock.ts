@@ -32,8 +32,8 @@ async function cuentas(): Promise<CuentaGuardada[]> {
       profesional: {
         id: 'pro-demo', numeroSocio: 'CP-0001',
         nombre: 'Cuenta', apellido: 'Demo', email: DEMO_CUENTA.email, telefono: '2610000000',
-        profesion: 'arquitecto', matricula: 'DEMO-001', colegio: 'camza', sede: 'mendoza',
-        estudio: 'Estudio Demo', apareceEnDirectorio: true, estado: 'aprobado',
+        profesion: 'arquitecto', matricula: 'DEMO-001', colegio: 'camza', zona: 'godoy-cruz', sede: 'mendoza',
+        comprasEnSamaco: 'regular', estudio: 'Estudio Demo', apareceEnDirectorio: true, estado: 'aprobado',
         fechaAlta: '2026-01-15T00:00:00-03:00', eventosInscriptos: ['lanzamiento-griferia-fv'],
       },
     });
@@ -58,18 +58,21 @@ export const mockProfesionales: ProfesionalesService & { simularAprobacion(id: s
   async registrar(input: RegistroInput): Promise<ResultadoAuth> {
     const lista = await cuentas();
     const email = input.email.trim().toLowerCase();
-    const matricula = normalizarMatricula(input.matricula);
+    // La matrícula es opcional; si la cargan, no puede repetirse en el mismo colegio.
+    const matricula = input.matricula?.trim() ? normalizarMatricula(input.matricula) : undefined;
     if (lista.some(c => c.profesional.email === email)) {
       return { ok: false, error: 'Ya existe una cuenta con ese email.' };
     }
-    if (lista.some(c => c.profesional.matricula === matricula && c.profesional.colegio === input.colegio)) {
+    if (matricula && lista.some(c => c.profesional.matricula === matricula && c.profesional.colegio === input.colegio)) {
       return { ok: false, error: 'Esa matrícula ya está registrada en el Círculo. Si es tuya, escribinos.' };
     }
     const profesional: Profesional = {
       id: `pro-${Date.now()}`,
       nombre: input.nombre.trim(), apellido: input.apellido.trim(), email,
-      telefono: input.telefono.trim(), profesion: input.profesion, matricula, colegio: input.colegio,
-      sede: input.sede, estudio: input.estudio?.trim() || undefined,
+      telefono: input.telefono.trim(), profesion: input.profesion,
+      matricula, colegio: matricula ? input.colegio : undefined,
+      zona: input.zona, sede: input.sede, comprasEnSamaco: input.comprasEnSamaco,
+      comoNosConociste: input.comoNosConociste, estudio: input.estudio?.trim() || undefined,
       apareceEnDirectorio: input.apareceEnDirectorio, estado: 'pendiente',
       fechaAlta: new Date().toISOString(), eventosInscriptos: [],
     };

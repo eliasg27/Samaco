@@ -66,7 +66,7 @@ export const EVENTOS: Evento[] = [
     tipo: 'visita',
     sede: 'mendoza',
     fecha: '2026-11-26T09:00:00-03:00',
-    lugar: 'Salida desde Ecosamaco — Las Heras',
+    lugar: 'Salida desde Casa Central — Godoy Cruz',
     descripcion: 'Recorrida por el proceso productivo y ensayos de resistencia. Traslado incluido. Cupo limitado.',
     cupo: 20,
     inscriptos: 9,
@@ -89,7 +89,7 @@ export const EVENTOS: Evento[] = [
 ];
 
 export const DESCUENTOS: Descuento[] = [
-  { id: 'd-1', alcance: 'Pisos y Revestimientos', porcentaje: 12, detalle: 'Sobre precio de lista, acumulable con 15% débito/transferencia.', sede: 'todas' },
+  { id: 'd-1', alcance: 'Pisos y Revestimientos', porcentaje: 12, detalle: 'Sobre precio de lista, acumulable con 15% OFF por transferencia.', sede: 'todas' },
   { id: 'd-2', alcance: 'Grifería',               porcentaje: 10, detalle: 'Todas las marcas.', sede: 'todas' },
   { id: 'd-3', alcance: 'Sanitarios',             porcentaje: 10, detalle: 'Loza y vanitorios.', sede: 'todas' },
   { id: 'd-4', alcance: 'Obra Gruesa',            porcentaje: 5,  detalle: 'Cemento, hierro y bloques para obras con acopio.', sede: 'mendoza' },

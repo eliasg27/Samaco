@@ -10,7 +10,7 @@ import { PanelTab, paths } from '../routes';
 import { useProfesional } from './context';
 import { esModoDemo, mockProfesionales, profesionales } from './mock';
 import {
-  COLEGIOS, Descuento, Estudio, Evento, Profesional, PROFESIONES, Sede, SEDES,
+  COLEGIOS, Descuento, Estudio, Evento, Profesional, PROFESIONES, Sede, SEDES, ZONAS,
 } from './types';
 import { ASESORES, CPS_LOGO, EventoCard, formatoFecha, formatoHora, SedeFiltro, useDatos } from './ui';
 
@@ -52,7 +52,7 @@ export function PanelView({ tab, ir }: { tab: Tab; ir: (v: View) => void }) {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
               <h1 className="text-3xl md:text-4xl font-black tracking-tight">Hola, {profesional.nombre}</h1>
-              <p className="text-sm text-slate-300 mt-1">{PROFESIONES[profesional.profesion]} · Mat. {profesional.matricula} · {SEDES[profesional.sede]}</p>
+              <p className="text-sm text-slate-300 mt-1">{PROFESIONES[profesional.profesion]}{profesional.matricula ? ` · Mat. ${profesional.matricula}` : ''} · {SEDES[profesional.sede]}</p>
             </div>
             <button onClick={cerrarSesion}
               className="self-start md:self-auto inline-flex items-center gap-2 text-xs font-bold text-white/70 hover:text-white">
@@ -94,11 +94,11 @@ function BannerPendiente({ profesional }: { profesional: Profesional }) {
       <div className="flex gap-3">
         <Hourglass className={`w-5 h-5 shrink-0 mt-0.5 ${rechazado ? 'text-red-600' : 'text-amber-600'}`} />
         <div>
-          <p className="font-black text-slate-800 text-sm">{rechazado ? 'No pudimos validar tu matrícula' : 'Tu matrícula está en revisión'}</p>
+          <p className="font-black text-slate-800 text-sm">{rechazado ? 'No pudimos confirmar tu alta' : 'Tu solicitud está en revisión'}</p>
           <p className="text-xs text-slate-600 mt-0.5">
             {rechazado
               ? 'Escribile a tu asesor para revisar los datos cargados.'
-              : `Estamos verificando la matrícula ${profesional.matricula} ante el ${COLEGIOS[profesional.colegio]}. Cuando se apruebe se activan tus descuentos y los eventos exclusivos.`}
+              : 'El equipo de Samaco está revisando tus datos y te va a contactar por WhatsApp. Cuando se apruebe tu alta se activan tus descuentos y los eventos exclusivos.'}
           </p>
         </div>
       </div>
@@ -133,7 +133,7 @@ function Credencial({ profesional }: { profesional: Profesional }) {
       </div>
       <div className="relative grid grid-cols-3 gap-2 text-[10px]">
         <div><p className="text-white/50 uppercase font-bold">Socio</p><p className="font-black text-sm">{profesional.numeroSocio ?? '—'}</p></div>
-        <div><p className="text-white/50 uppercase font-bold">Matrícula</p><p className="font-black text-sm">{profesional.matricula}</p></div>
+        <div><p className="text-white/50 uppercase font-bold">{profesional.matricula ? 'Matrícula' : 'Zona'}</p><p className="font-black text-sm truncate">{profesional.matricula ?? ZONAS[profesional.zona] ?? '—'}</p></div>
         <div><p className="text-white/50 uppercase font-bold">Sede</p><p className="font-black text-sm">{profesional.sede === 'mendoza' ? 'Mendoza' : 'San Juan'}</p></div>
       </div>
     </div>
@@ -188,7 +188,7 @@ function Resumen({ profesional, irTab }: { profesional: Profesional; irTab: (t: 
           <p className="font-black text-slate-800">{asesor.nombre}</p>
           <p className="text-xs text-slate-500 mb-4">{SEDES[profesional.sede]}</p>
           <div className="space-y-2">
-            <a href={`https://wa.me/${asesor.whatsapp}?text=${encodeURIComponent(`Hola! Soy ${profesional.nombre} ${profesional.apellido} (Círculo de Profesionales, mat. ${profesional.matricula}). Quiero cotizar una obra.`)}`}
+            <a href={`https://wa.me/${asesor.whatsapp}?text=${encodeURIComponent(`Hola! Soy ${profesional.nombre} ${profesional.apellido} (Círculo de Profesionales${profesional.numeroSocio ? `, socio ${profesional.numeroSocio}` : ''}). Quiero cotizar una obra.`)}`}
               target="_blank" rel="noreferrer"
               className="w-full inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1ebe58] text-white font-bold py-2.5 rounded-xl text-sm transition-colors">
               <Phone className="w-4 h-4" />Cotizar una obra
@@ -247,7 +247,7 @@ function Eventos({ profesional }: { profesional: Profesional }) {
           if (inscripto) {
             accion = <button disabled={procesando === ev.id} onClick={() => toggle(ev, true)} className="w-full py-2.5 border-2 border-slate-200 hover:border-red-300 hover:text-red-600 text-slate-600 text-xs font-bold rounded-xl transition-colors">Cancelar inscripción</button>;
           } else if (bloqueado) {
-            accion = <p className="w-full py-2.5 text-center bg-slate-50 text-slate-500 text-xs font-bold rounded-xl inline-flex items-center justify-center gap-1.5"><Lock className="w-3 h-3" />Disponible al aprobarse tu matrícula</p>;
+            accion = <p className="w-full py-2.5 text-center bg-slate-50 text-slate-500 text-xs font-bold rounded-xl inline-flex items-center justify-center gap-1.5"><Lock className="w-3 h-3" />Disponible al aprobarse tu alta</p>;
           } else if (lleno) {
             accion = <p className="w-full py-2.5 text-center bg-slate-100 text-slate-500 text-xs font-bold rounded-xl">Cupo completo</p>;
           } else {
@@ -291,7 +291,7 @@ function Descuentos({ profesional, ir }: { profesional: Profesional; ir: (v: Vie
           </div>
         ))}
       </div>
-      {!aprobado && <p className="text-xs text-slate-500 mt-4">Los porcentajes se muestran cuando se aprueba tu matrícula.</p>}
+      {!aprobado && <p className="text-xs text-slate-500 mt-4">Los porcentajes se muestran cuando se aprueba tu alta.</p>}
     </div>
   );
 }
@@ -391,8 +391,9 @@ function Perfil({ profesional }: { profesional: Profesional }) {
         {dato('Nombre', `${profesional.nombre} ${profesional.apellido}`)}
         {dato('Email', profesional.email)}
         {dato('Profesión', PROFESIONES[profesional.profesion])}
-        {dato('Matrícula', profesional.matricula)}
-        {dato('Colegio', COLEGIOS[profesional.colegio])}
+        {dato('Zona de trabajo', ZONAS[profesional.zona] ?? '—')}
+        {profesional.matricula && dato('Matrícula', profesional.matricula)}
+        {profesional.colegio && dato('Colegio', COLEGIOS[profesional.colegio])}
         {dato('N° de socio', profesional.numeroSocio ?? 'Se asigna al aprobarse')}
         {dato('Miembro desde', new Intl.DateTimeFormat('es-AR', { month: 'long', year: 'numeric' }).format(new Date(profesional.fechaAlta)))}
       </div>

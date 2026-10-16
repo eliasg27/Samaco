@@ -5,16 +5,50 @@ export const SEDES: Record<Sede, string> = {
   'san-juan': 'Samaco San Juan',
 };
 
-export type Profesion = 'arquitecto' | 'ingeniero' | 'mmo' | 'disenador';
+// Opciones tomadas del formulario oficial del Círculo (Google Forms de Samaco).
+
+/** "Especialidad" en el formulario. */
+export type Profesion = 'arquitecto' | 'ingeniero' | 'desarrollador' | 'constructor' | 'otro';
 
 export const PROFESIONES: Record<Profesion, string> = {
-  arquitecto: 'Arquitecto/a',
-  ingeniero:  'Ingeniero/a civil',
-  mmo:        'Maestro mayor de obras',
-  disenador:  'Diseñador/a de interiores',
+  arquitecto:    'Arquitecto/a',
+  ingeniero:     'Ingeniero/a civil',
+  desarrollador: 'Desarrollador/a inmobiliario',
+  constructor:   'Constructor/a independiente',
+  otro:          'Profesional',
 };
 
-/** Colegio que emite la matrícula. */
+export type Zona = 'capital' | 'godoy-cruz' | 'lujan' | 'maipu' | 'guaymallen' | 'las-heras' | 'otros';
+
+export const ZONAS: Record<Zona, string> = {
+  'capital':    'Ciudad de Mendoza',
+  'godoy-cruz': 'Godoy Cruz',
+  'lujan':      'Luján de Cuyo',
+  'maipu':      'Maipú',
+  'guaymallen': 'Guaymallén',
+  'las-heras':  'Las Heras',
+  'otros':      'Otros',
+};
+
+export type ComprasEnSamaco = 'regular' | 'alguna-vez' | 'no';
+
+export const COMPRAS_EN_SAMACO: Record<ComprasEnSamaco, string> = {
+  'regular':    'Sí, regularmente',
+  'alguna-vez': 'Sí, alguna vez',
+  'no':         'No, pero me interesa',
+};
+
+export type ComoNosConociste = 'evento' | 'colega' | 'redes' | 'ventas' | 'otro';
+
+export const COMO_NOS_CONOCISTE: Record<ComoNosConociste, string> = {
+  evento: 'Evento de lanzamiento',
+  colega: 'Un colega me lo recomendó',
+  redes:  'Redes sociales de Samaco',
+  ventas: 'El equipo de ventas de Samaco',
+  otro:   'Otro',
+};
+
+/** Colegio que emite la matrícula (la matrícula es opcional). */
 export type Colegio = 'camza' | 'casj' | 'otro';
 
 export const COLEGIOS: Record<Colegio, string> = {
@@ -23,7 +57,7 @@ export const COLEGIOS: Record<Colegio, string> = {
   otro:  'Otro colegio / consejo profesional',
 };
 
-/** pendiente: Samaco todavía no validó la matrícula. aprobado: miembro activo. */
+/** pendiente: Samaco todavía no revisó la solicitud. aprobado: miembro activo. */
 export type EstadoMembresia = 'pendiente' | 'aprobado' | 'rechazado';
 
 export interface Profesional {
@@ -35,9 +69,13 @@ export interface Profesional {
   email: string;
   telefono: string;
   profesion: Profesion;
-  matricula: string;
-  colegio: Colegio;
+  /** Opcional: no todos los miembros tienen matrícula (desarrolladores, constructores…). */
+  matricula?: string;
+  colegio?: Colegio;
+  zona: Zona;
   sede: Sede;
+  comprasEnSamaco: ComprasEnSamaco;
+  comoNosConociste?: ComoNosConociste;
   estudio?: string;
   /** Aceptó aparecer en el directorio público de la Red de Profesionales. */
   apareceEnDirectorio: boolean;
@@ -54,9 +92,12 @@ export interface RegistroInput {
   telefono: string;
   password: string;
   profesion: Profesion;
-  matricula: string;
-  colegio: Colegio;
+  matricula?: string;
+  colegio?: Colegio;
+  zona: Zona;
   sede: Sede;
+  comprasEnSamaco: ComprasEnSamaco;
+  comoNosConociste?: ComoNosConociste;
   estudio?: string;
   apareceEnDirectorio: boolean;
 }

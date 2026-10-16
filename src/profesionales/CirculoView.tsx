@@ -8,8 +8,8 @@ import { Beneficio, Estudio, Evento, Sede, SEDES } from './types';
 import { BeneficioCard, CPS_LOGO, EventoCard, SeccionTitulo, SedeFiltro, useDatos } from './ui';
 
 const PREGUNTAS = [
-  ['¿Quiénes pueden sumarse?', 'Arquitectos/as, ingenieros/as civiles, maestros mayores de obra y diseñadores/as de interiores con matrícula vigente, que trabajen en Mendoza o San Juan.'],
-  ['¿Cómo se valida la matrícula?', 'Al registrarte cargás tu número de matrícula y el colegio que la emite. El equipo de Samaco la verifica y, una vez aprobada, se activan los precios profesionales y la inscripción a eventos exclusivos.'],
+  ['¿Quiénes pueden ser parte?', 'Arquitectos/as, ingenieros/as civiles, desarrolladores/as inmobiliarios, constructores/as independientes y otros profesionales de la construcción que trabajen en Mendoza o San Juan.'],
+  ['¿Necesito matrícula?', 'No es obligatoria. Si la tenés, cargala en el formulario y nos ayuda a confirmar tu alta más rápido. El equipo de Samaco revisa cada solicitud y, una vez aprobada, se activan los precios profesionales y la inscripción a eventos exclusivos.'],
   ['¿Cómo se aplican los descuentos?', 'Comprando con tu cuenta del Círculo, los descuentos por categoría se aplican automáticamente. También podés pedir cotizaciones de obra a tu asesor comercial.'],
   ['¿Mi estudio aparece en el directorio?', 'Solo si lo autorizás al registrarte o desde tu perfil. Podés quitarlo cuando quieras.'],
 ] as const;
@@ -29,7 +29,7 @@ export function CirculoView({ ir }: { ir: (v: View) => void }) {
 
   const ctaPrincipal = profesional
     ? <button onClick={() => ir('panel')} className="bg-[#E8593C] hover:bg-[#d14a2f] text-white font-black py-4 px-8 rounded-2xl text-sm transition-colors inline-flex items-center gap-2">Ir a mi panel <ArrowRight className="w-4 h-4" /></button>
-    : <button onClick={() => ir('pro-registro')} className="bg-[#E8593C] hover:bg-[#d14a2f] text-white font-black py-4 px-8 rounded-2xl text-sm transition-colors inline-flex items-center gap-2">Sumate con tu matrícula <ArrowRight className="w-4 h-4" /></button>;
+    : <button onClick={() => ir('pro-registro')} className="bg-[#E8593C] hover:bg-[#d14a2f] text-white font-black py-4 px-8 rounded-2xl text-sm transition-colors inline-flex items-center gap-2">Quiero ser parte <ArrowRight className="w-4 h-4" /></button>;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -48,7 +48,7 @@ export function CirculoView({ ir }: { ir: (v: View) => void }) {
             <BadgeCheck className="w-4 h-4" />Mendoza · San Juan
           </p>
           <p className="text-slate-300 text-base md:text-lg leading-relaxed max-w-xl mb-8">
-            El espacio para arquitectos, ingenieros, MMO y diseñadores que especifican y construyen con Samaco.
+            El club para arquitectos, ingenieros, desarrolladores y constructores que eligen Samaco para sus obras.
             Precios profesionales, eventos con las marcas y un asesor dedicado para tus obras.
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
@@ -76,20 +76,20 @@ export function CirculoView({ ir }: { ir: (v: View) => void }) {
 
       {/* ── BENEFICIOS ── */}
       <section className="container mx-auto px-4 md:px-8 max-w-7xl py-16">
-        <SeccionTitulo kicker="Por qué sumarte" titulo="Beneficios para miembros" />
+        <SeccionTitulo kicker="Por qué ser parte" titulo="Beneficios para miembros" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {beneficios.map(b => <BeneficioCard key={b.id} beneficio={b} />)}
         </div>
       </section>
 
-      {/* ── CÓMO SUMARTE ── */}
+      {/* ── CÓMO FORMAR PARTE ── */}
       <section className="bg-white border-y border-slate-100 py-16">
         <div className="container mx-auto px-4 md:px-8 max-w-7xl">
-          <SeccionTitulo kicker="Alta en 3 pasos" titulo="Cómo sumarte al Círculo" />
+          <SeccionTitulo kicker="Alta en 3 pasos" titulo="Cómo formar parte" />
           <ol className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {([
-              [ClipboardList, 'Registrate con tu matrícula', 'Completá tus datos profesionales, el número de matrícula y el colegio que la emite.'],
-              [ShieldCheck,   'Validamos tu matrícula',      'El equipo de Samaco verifica tu matrícula. Mientras tanto ya podés ver tu panel.'],
+              [ClipboardList, 'Completá el formulario',     'Tus datos, tu especialidad y tu zona de trabajo. Lleva un par de minutos.'],
+              [ShieldCheck,   'Revisamos tu solicitud',     'El equipo de Samaco confirma tu alta y te contacta. Mientras tanto ya podés ver tu panel.'],
               [BadgeCheck,    'Activamos tus beneficios',    'Se habilitan los precios profesionales, los eventos exclusivos y tu credencial digital.'],
             ] as const).map(([Icon, titulo, texto], i) => (
               <li key={titulo} className="relative bg-slate-50 rounded-2xl p-6 border border-slate-100">
@@ -117,7 +117,7 @@ export function CirculoView({ ir }: { ir: (v: View) => void }) {
                   <button onClick={() => ir(profesional ? 'panel' : 'pro-registro')}
                     className="w-full py-2.5 border-2 border-[#1B4F8C] text-[#1B4F8C] hover:bg-[#1B4F8C] hover:text-white text-xs font-bold rounded-xl transition-colors inline-flex items-center justify-center gap-1.5">
                     {ev.exclusivo && !profesional && <Lock className="w-3 h-3" />}
-                    {profesional ? 'Inscribirme desde mi panel' : ev.exclusivo ? 'Sumate para inscribirte' : 'Registrate para inscribirte'}
+                    {profesional ? 'Inscribirme desde mi panel' : ev.exclusivo ? 'Exclusivo para miembros' : 'Registrarme para inscribirme'}
                   </button>
                 } />
               ))}
@@ -153,7 +153,7 @@ export function CirculoView({ ir }: { ir: (v: View) => void }) {
 
       {/* ── FAQ ── */}
       <section className="container mx-auto px-4 md:px-8 max-w-3xl py-16">
-        <SeccionTitulo kicker="Preguntas frecuentes" titulo="Antes de sumarte" />
+        <SeccionTitulo kicker="Preguntas frecuentes" titulo="Preguntas frecuentes" />
         <div className="space-y-3">
           {PREGUNTAS.map(([p, r], i) => (
             <div key={p} className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
@@ -171,7 +171,7 @@ export function CirculoView({ ir }: { ir: (v: View) => void }) {
       <section className="bg-[#1B4F8C] py-14">
         <div className="container mx-auto px-4 max-w-3xl text-center text-white">
           <h2 className="text-2xl md:text-3xl font-black mb-3">Tu próxima obra, con respaldo Samaco</h2>
-          <p className="text-slate-300 mb-8">Sumate al Círculo y accedé a precios, eventos y asesoramiento para profesionales.</p>
+          <p className="text-slate-300 mb-8">Accedé a precios, eventos y asesoramiento pensados para profesionales de la construcción.</p>
           {ctaPrincipal}
         </div>
       </section>

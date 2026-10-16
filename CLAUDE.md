@@ -55,16 +55,18 @@ React Router (`BrowserRouter`) + `vercel.json` con rewrite a `index.html`. Todas
 
 ## Medios de pago (`src/financiacion/`)
 
-- `data.ts`: medios de pago, condiciones y `vigenteHasta`. Una promo vencida se oculta sola del carrusel de la home y de `/financiacion`.
-- `CarruselMediosPago.tsx` (home): avanza cada 4 s, se pausa con hover/foco/touch y respeta `prefers-reduced-motion`.
+- `data.ts`: promociones reales de Samaco (canal online / sucursal / ambos, planes de cuotas y descuentos, `vigenteHasta`) y la promo destacada de 9 cuotas. Una promo vencida se oculta sola del carrusel de la home y de `/financiacion`.
+- `CarruselMediosPago.tsx` (home) y la barra superior del header: cinta en loop continuo (clases `marquee` en `index.css`), pausa con hover/foco y respeta `prefers-reduced-motion`.
 - `FinanciacionView.tsx`: listado con condiciones + simulador de cuotas.
 
 ## Círculo de Profesionales (`src/profesionales/`)
 
-Programa para arquitectos, ingenieros, MMO y diseñadores con matrícula. Sedes: Samaco Mendoza y Samaco San Juan.
+Club para arquitectos, ingenieros, desarrolladores inmobiliarios, constructores y otros profesionales. Sedes: Samaco Mendoza y Samaco San Juan.
+
+- **El alta replica el formulario oficial de Google Forms** (nombre y apellido, especialidad, WhatsApp, email, zona de trabajo, si compra en Samaco, cómo se enteró). **La matrícula es opcional** (sección "Datos profesionales"). No repetir "Sumate" en los textos.
 
 - Vistas: `profesionales` (landing pública), `pro-ingresar` / `pro-registro` (alta con matrícula), `panel` (privado: credencial, eventos, descuentos, red, perfil).
-- Estados de membresía: `pendiente` → Samaco valida la matrícula → `aprobado`. Los descuentos y eventos exclusivos se habilitan solo aprobado.
+- Estados de membresía: `pendiente` → Samaco revisa la solicitud → `aprobado`. Los descuentos y eventos exclusivos se habilitan solo aprobado.
 - `service.ts` documenta el mapeo previsto a Shopify (customers con tag + metafields, descuentos por segmento, metaobjects para eventos/estudios). Hoy corre `mock.ts` en localStorage, con la cuenta demo `demo@samaco.test` / `demo1234` y un botón "Simular aprobación (demo)".
 - Datos de ejemplo en `mock-data.ts` (eventos, estudios, descuentos, asesores en `ui.tsx`): reemplazar por los reales.
 - El directorio de profesionales muestra solo a quienes aceptaron aparecer (opt-in).
@@ -76,6 +78,9 @@ Programa para arquitectos, ingenieros, MMO y diseñadores con matrícula. Sedes:
 - Precios en ARS. Mantener el modelo de precio lista / débito-transferencia / cuotas.
 
 ## Pendiente de definir
+
+- **Árbol de categorías**: se va a rehacer más adelante con Samaco. Samaco **no vende Herramientas** (la categoría está en el mock y en el menú; sacarla al rehacer el árbol). Mantener: categoría Ofertas y las cucardas de producto (Nuevo / % OFF).
+- **Promociones**: las de `src/financiacion/data.ts` vencen el 31/10/26. Pedir las nuevas a Samaco antes de esa fecha; vencidas se ocultan solas.
 
 - Tienda Shopify (dominio `*.myshopify.com`) y token de Storefront API.
 - Quién arma la sync Paljet → Shopify y con qué documentación de la API de Paljet.

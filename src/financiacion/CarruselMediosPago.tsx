@@ -1,85 +1,85 @@
-import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, ChevronLeft, ChevronRight, CreditCard } from 'lucide-react';
+import { ArrowRight, CreditCard, Sparkles } from 'lucide-react';
 import { Link } from 'react-router';
 import { paths } from '../routes';
-import { mediosVigentes } from './data';
+import { CANALES, Canal, mediosVigentes, promoDestacadaVigente } from './data';
 
-const INTERVALO_MS = 4000;
+interface Tarjeta {
+  id: string;
+  href: string;
+  nombre: string;
+  beneficio: string;
+  canal: Canal;
+  tarjetas: string[];
+  color: string;
+  textColor: string;
+  destacada?: boolean;
+}
 
-/** Carrusel de medios de pago para la home: avanza solo, se puede deslizar con el dedo o con las flechas. */
+/**
+ * Cinta de medios de pago para la home: se desplaza sola en loop continuo (CSS, sin JS),
+ * se pausa con el mouse encima o con foco, y queda quieta y deslizable si el usuario pidió menos movimiento.
+ */
 export function CarruselMediosPago() {
-  const medios = mediosVigentes();
-  const pista = useRef<HTMLDivElement>(null);
-  const [pausado, setPausado] = useState(false);
-  const [activo, setActivo] = useState(0);
+  const promo = promoDestacadaVigente();
+  const items: Tarjeta[] = [
+    ...(promo ? [{
+      id: 'destacada', href: paths.financiacion(), nombre: promo.bajada, beneficio: promo.titulo,
+      canal: promo.canal, tarjetas: promo.tarjetas, color: 'bg-[#E8593C]', textColor: 'text-[#E8593C]', destacada: true,
+    }] : []),
+    ...mediosVigentes().map(m => ({
+      id: m.id, href: `${paths.financiacion()}#${m.id}`, nombre: m.nombre, beneficio: m.beneficio,
+      canal: m.canal, tarjetas: m.tarjetas, color: m.color, textColor: m.textColor,
+    })),
+  ];
 
-  const paso = () => {
-    const el = pista.current;
-    const card = el?.firstElementChild as HTMLElement | null;
-    if (!el || !card) return 0;
-    const gap = parseFloat(getComputedStyle(el).columnGap || '0') || 0;
-    return card.offsetWidth + gap;
-  };
+  if (items.length === 0) {
+    return (
+      <p className="text-sm text-slate-500 bg-slate-50 border border-slate-100 rounded-2xl p-6">
+        Estamos actualizando las promociones. Consultá las financiaciones vigentes por WhatsApp.
+      </p>
+    );
+  }
 
-  const mover = (dir: 1 | -1) => {
-    const el = pista.current;
-    if (!el) return;
-    const alFinal = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
-    const alInicio = el.scrollLeft <= 4;
-    if (dir === 1 && alFinal) el.scrollTo({ left: 0, behavior: 'smooth' });
-    else if (dir === -1 && alInicio) el.scrollTo({ left: el.scrollWidth, behavior: 'smooth' });
-    else el.scrollBy({ left: dir * paso(), behavior: 'smooth' });
-  };
-
-  // Avance automático. Se pausa con el mouse encima, con foco, al tocar, con la pestaña oculta o si el usuario pidió menos movimiento.
-  useEffect(() => {
-    if (pausado || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const t = setInterval(() => { if (!document.hidden) mover(1); }, INTERVALO_MS);
-    return () => clearInterval(t);
-  });
-
-  const onScroll = () => {
-    const p = paso();
-    if (p && pista.current) setActivo(Math.round(pista.current.scrollLeft / p));
-  };
-
-  if (medios.length === 0) return null;
+  const card = (t: Tarjeta, duplicado: boolean) => (
+    <Link key={`${t.id}${duplicado ? '-b' : ''}`} to={t.href} tabIndex={duplicado ? -1 : undefined} aria-hidden={duplicado || undefined}
+      className={`group/card relative shrink-0 w-72 mr-4 rounded-2xl border shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all overflow-hidden flex flex-col
+        ${duplicado ? 'motion-reduce:hidden' : ''}
+        ${t.destacada ? 'bg-[#0d2a4d] border-[#0d2a4d] text-white' : 'bg-white border-slate-100'}`}>
+      <span className={`absolute inset-x-0 top-0 h-1 ${t.color}`} />
+      <div className="p-5 flex flex-col flex-1">
+        <div className="flex items-center justify-between mb-4">
+          <div className={`w-10 h-10 rounded-xl ${t.color} flex items-center justify-center text-white`}>
+            {t.destacada ? <Sparkles className="w-5 h-5" /> : <CreditCard className="w-5 h-5" />}
+          </div>
+          <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-full
+            ${t.destacada ? 'bg-white/10 text-white/80' : t.canal === 'sucursal' ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-500'}`}>
+            {CANALES[t.canal]}
+          </span>
+        </div>
+        <p className={`text-2xl font-black leading-tight mb-1 ${t.destacada ? 'text-white' : t.textColor}`}>{t.beneficio}</p>
+        <p className={`text-xs font-semibold mb-4 ${t.destacada ? 'text-slate-300' : 'text-slate-500'}`}>{t.nombre}</p>
+        <div className="flex flex-wrap gap-1 mt-auto">
+          {t.tarjetas.slice(0, 4).map(n => (
+            <span key={n} className={`text-[10px] font-bold px-2 py-0.5 rounded-full border
+              ${t.destacada ? 'border-white/20 text-white/80' : 'border-slate-200 text-slate-500'}`}>{n}</span>
+          ))}
+          {t.tarjetas.length > 4 && <span className="text-[10px] font-bold px-1 text-slate-400">+{t.tarjetas.length - 4}</span>}
+        </div>
+      </div>
+    </Link>
+  );
 
   return (
-    <div onMouseEnter={() => setPausado(true)} onMouseLeave={() => setPausado(false)}
-      onFocusCapture={() => setPausado(true)} onBlurCapture={() => setPausado(false)}
-      onTouchStart={() => setPausado(true)}
-      aria-roledescription="carrusel" aria-label="Medios de pago">
-      <div className="relative">
-        <div ref={pista} onScroll={onScroll}
-          className="flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth pb-4">
-          {medios.map(m => (
-            <Link key={m.id} to={`${paths.financiacion()}#${m.id}`}
-              className="snap-start shrink-0 w-[78%] sm:w-64 bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md hover:-translate-y-0.5 transition-all">
-              <div className={`w-10 h-10 rounded-xl ${m.color} flex items-center justify-center text-white mb-4`}>
-                <CreditCard className="w-5 h-5" />
-              </div>
-              <p className="text-xs font-bold text-slate-500 mb-1">{m.nombre}</p>
-              <p className={`text-xl font-black ${m.textColor} mb-1`}>{m.beneficio}</p>
-              <p className="text-[11px] text-slate-400 leading-snug">{m.resumen}</p>
-            </Link>
-          ))}
+    <div>
+      <div className="marquee marquee-mask overflow-hidden motion-reduce:overflow-x-auto no-scrollbar -mx-4 px-4 py-2"
+        role="region" aria-label="Medios de pago y financiación">
+        {/* La lista va duplicada para que el loop no tenga corte; la copia está oculta para lectores de pantalla y teclado. */}
+        <div className="marquee-track flex" style={{ ['--marquee-dur' as string]: `${items.length * 7}s` }}>
+          {items.map(t => card(t, false))}
+          {items.map(t => card(t, true))}
         </div>
-        <button onClick={() => mover(-1)} aria-label="Medio de pago anterior"
-          className="hidden md:flex absolute -left-5 top-[42%] -translate-y-1/2 w-10 h-10 rounded-full bg-white border border-slate-200 shadow-md items-center justify-center text-slate-600 hover:text-[#1B4F8C]">
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-        <button onClick={() => mover(1)} aria-label="Medio de pago siguiente"
-          className="hidden md:flex absolute -right-5 top-[42%] -translate-y-1/2 w-10 h-10 rounded-full bg-white border border-slate-200 shadow-md items-center justify-center text-slate-600 hover:text-[#1B4F8C]">
-          <ChevronRight className="w-5 h-5" />
-        </button>
       </div>
-      <div className="flex items-center justify-between gap-4 mt-2">
-        <div className="flex gap-1.5" aria-hidden>
-          {medios.map((m, i) => (
-            <span key={m.id} className={`h-1.5 rounded-full transition-all ${i === activo ? 'w-6 bg-[#E8593C]' : 'w-1.5 bg-slate-300'}`} />
-          ))}
-        </div>
+      <div className="flex justify-end mt-4">
         <Link to={paths.financiacion()} className="inline-flex items-center gap-1.5 text-sm font-bold text-[#1B4F8C] hover:text-[#E8593C]">
           Ver todas las financiaciones <ArrowRight className="w-4 h-4" />
         </Link>

@@ -51,7 +51,7 @@ export function EventoView({ id, ir }: { id: string; ir: (v: View) => void }) {
     accion = (
       <div className="space-y-2">
         <button onClick={() => ir('pro-registro')} className="w-full py-3.5 bg-[#E8593C] hover:bg-[#d14a2f] text-white font-black rounded-xl text-sm">
-          {evento.exclusivo ? 'Sumate al Círculo para inscribirte' : 'Registrate para inscribirte'}
+          {evento.exclusivo ? 'Exclusivo para miembros · Unirme' : 'Registrarme para inscribirme'}
         </button>
         <button onClick={() => ir('pro-ingresar')} className="w-full py-3 border-2 border-slate-200 hover:border-[#1B4F8C] text-slate-700 font-bold rounded-xl text-sm">Ya soy miembro · Ingresar</button>
       </div>
@@ -64,7 +64,7 @@ export function EventoView({ id, ir }: { id: string; ir: (v: View) => void }) {
       </div>
     );
   } else if (evento.exclusivo && !aprobado) {
-    accion = <p className="flex items-center gap-2 text-sm font-bold text-slate-500"><Lock className="w-4 h-4" />Disponible cuando se apruebe tu matrícula.</p>;
+    accion = <p className="flex items-center gap-2 text-sm font-bold text-slate-500"><Lock className="w-4 h-4" />Disponible cuando se apruebe tu alta.</p>;
   } else if (lleno) {
     accion = <p className="text-sm font-bold text-slate-500">Cupo completo.</p>;
   } else {

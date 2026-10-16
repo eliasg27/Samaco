@@ -21,25 +21,31 @@ import { EventoView } from './profesionales/EventoView';
 import { CPS_LOGO } from './profesionales/ui';
 import { CarruselMediosPago } from './financiacion/CarruselMediosPago';
 import { FinanciacionView } from './financiacion/FinanciacionView';
+import { descuentoTransferencia, estaVigente, promoDestacadaVigente } from './financiacion/data';
 
 // ─────────────────────────────────────────────
 // CONSTANTS
 // ─────────────────────────────────────────────
 
-const HERO_SLIDES = [
+// Los slides con `vigenteHasta` se ocultan solos cuando vence la promo.
+const HERO_SLIDES = ([
   {
-    badge: 'BNA+',
-    title: '18 Cuotas\nSin Interés',
-    subtitle: 'Financiación exclusiva con BNA+ en todas tus compras. Compra mínima $400.000. Vigente hasta 30/04/26.',
-    cta: 'Ver catálogo',
+    badge: 'Todos los días',
+    title: '9 Cuotas\nSin Interés',
+    subtitle: 'Con BNA+, Visa, Mastercard y Naranja X Visa, en todas las líneas de productos. Vigente hasta el 31/10/26 o hasta agotar stock.',
+    cta: 'Ver financiación',
+    to: 'financiacion',
+    vigenteHasta: '2026-10-31',
     bg: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&q=80&w=1400',
     badgeColor: '#1B4F8C',
   },
   {
     badge: '15% OFF',
-    title: 'Pagá con\nDébito o\nTransferencia',
-    subtitle: '15% de descuento todos los días en todos los productos. Sin límite de compra.',
-    cta: 'Ver ofertas',
+    title: 'Pagá con\nTransferencia',
+    subtitle: 'Comprando en la web: 15% OFF con transferencia bancaria y 10% OFF con débito o crédito en 1 pago. Vigente hasta el 31/10/26.',
+    cta: 'Ver medios de pago',
+    to: 'financiacion',
+    vigenteHasta: '2026-10-31',
     bg: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&q=80&w=1400',
     badgeColor: '#E8593C',
   },
@@ -48,16 +54,18 @@ const HERO_SLIDES = [
     title: 'Stock\nGarantizado',
     subtitle: 'Acopio de materiales sin cargo, congelá el precio hoy y retirá cuando necesitás. Entrega en obra con flota propia.',
     cta: 'Conocer más',
+    to: 'sucursales',
     bg: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&q=80&w=1400',
     badgeColor: '#1B4F8C',
   },
-];
+] as { badge: string; title: string; subtitle: string; cta: string; to: View; vigenteHasta?: string; bg: string; badgeColor: string }[])
+  .filter(s => estaVigente(s));
 
 const WHY_SAMACO = [
   { icon: Package,   title: 'Stock Garantizado', description: 'Más de 5.000 productos en stock permanente. Lo que necesitás, cuando lo necesitás.',    color: 'bg-blue-50',    iconColor: 'text-[#1B4F8C]'   },
   { icon: Truck,     title: 'Entrega en Obra',   description: 'Flota propia para entregas en toda Mendoza. Puntualidad y cuidado asegurados.',          color: 'bg-orange-50',  iconColor: 'text-[#E8593C]'   },
   { icon: Archive,   title: 'Acopio sin Cargo',  description: 'Congelá el precio hoy y retirá cuando necesitás. Guardamos tu compra hasta 12 meses.',   color: 'bg-emerald-50', iconColor: 'text-emerald-600' },
-  { icon: Building2, title: '4 Sucursales',      description: 'Casa Central, Luján, Ecosamaco y Samaco Instalaciones. Siempre cerca tuyo en Mendoza.',  color: 'bg-purple-50',  iconColor: 'text-purple-600'  },
+  { icon: Building2, title: '3 Sucursales',      description: 'Casa Central, Luján de Cuyo y Samaco Instalaciones. Siempre cerca tuyo en Mendoza.',  color: 'bg-purple-50',  iconColor: 'text-purple-600'  },
 ];
 
 const BRANDS_LIST = ['FV', 'Roca', 'Eskabe', 'Elizabeth', 'RDAU', 'Genebre', 'Dune', 'Peirano', 'Ferrum', 'Casal'];
@@ -132,19 +140,6 @@ const SUCURSALES = [
     color: 'bg-emerald-600',
     description: 'Especializada en obra gruesa y materiales pesados. Logística de entrega en zona sur.',
     features: ['Grandes volúmenes', 'Entrega zona sur', 'Hormigón elaborado', 'Autoelevador'],
-  },
-  {
-    id: 'ecosamaco',
-    name: 'Ecosamaco',
-    address: 'Ruta 40 Norte 500, Las Heras',
-    phone: '(0261) 555-0003',
-    hours: 'Lun–Vie 8:00–17:00 / Sáb 8:00–12:00',
-    email: 'ecosamaco@samacoonline.com.ar',
-    mapUrl: 'https://maps.google.com/?q=Las+Heras,+Mendoza,+Argentina',
-    icon: '🌿',
-    color: 'bg-green-600',
-    description: 'Materiales sustentables y construcción ecológica. Paneles solares y sistemas bioclimáticos.',
-    features: ['Materiales sustentables', 'Paneles solares', 'Construcción en seco', 'Asesoramiento eco'],
   },
   {
     id: 'instalaciones',
@@ -258,7 +253,7 @@ const ProductCard = ({ product, onClick, onAddToCart, isFavorite, onToggleFavori
           <span className="text-xs font-normal text-slate-400 ml-1">/ cuota</span>
         </div>
         <p className="text-[11px] text-slate-500">
-          <span className="font-semibold text-slate-700">{fmt(product.cashPrice)}</span> débito/transf.
+          <span className="font-semibold text-slate-700">{fmt(product.cashPrice)}</span> con transferencia
           <span className="ml-1 text-emerald-600 font-bold">−15%</span>
         </p>
         <p className="text-[10px] text-slate-400 line-through">{fmt(product.listPrice)}</p>
@@ -395,10 +390,10 @@ const MiniCart = ({ isOpen, onClose, cartItems, onUpdate, onRemove }: MiniCartPr
             {cartItems.length > 0 && (
               <div className="border-t border-slate-100 px-6 py-5 space-y-3">
                 <div className="flex justify-between font-bold text-sm text-slate-700">
-                  <span>Subtotal (débito/transf.)</span>
+                  <span>Subtotal con transferencia</span>
                   <span className="text-[#1B4F8C] font-black text-base">{fmt(total)}</span>
                 </div>
-                <p className="text-[10px] text-slate-400 text-center">15% OFF débito/transferencia ya aplicado al precio</p>
+                <p className="text-[10px] text-slate-400 text-center">15% OFF pagando con transferencia bancaria (compra online)</p>
                 <button onClick={goToCheckout} disabled={checkingOut}
                   className="w-full py-4 bg-[#E8593C] hover:bg-[#d14a2f] disabled:bg-slate-300 text-white font-black rounded-2xl transition-colors text-sm shadow-lg">
                   {checkingOut ? 'Redirigiendo al pago…' : 'Ir a pagar'}
@@ -472,19 +467,36 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
   const q             = searchQuery.trim().toLowerCase();
   const sugCategories = q.length >= 2 ? categories.filter(c => c.name.toLowerCase().includes(q)).slice(0, 3) : [];
 
+  const promo9 = promoDestacadaVigente();
+  const transf = descuentoTransferencia();
+  const topBarItems: { label: string; icon?: React.ReactNode; onClick?: () => void; href?: string }[] = [
+    { label: 'Envío gratis en compras +$900.000', icon: <span className="w-1.5 h-1.5 rounded-full bg-[#E8593C] animate-pulse" /> },
+    ...(promo9 ? [{ label: `${promo9.titulo} todos los días`, icon: <CreditCard className="w-3 h-3" />, onClick: () => navigateTo('financiacion') }] : []),
+    ...(transf ? [{ label: `${transf}% OFF con transferencia`, onClick: () => navigateTo('financiacion') }] : []),
+    { label: 'WhatsApp atención', icon: <Phone className="w-3 h-3" />, href: 'https://wa.me/5492615555555' },
+    { label: '3 sucursales en Mendoza', icon: <MapPin className="w-3 h-3" />, onClick: () => navigateTo('sucursales') },
+    { label: 'Círculo de Profesionales', icon: <BadgeCheck className="w-3 h-3" />, onClick: () => navigateTo('profesionales') },
+  ];
+
   return (
     <>
       <header className={`bg-white sticky top-0 z-[100] border-b border-slate-100 transition-shadow duration-300 ${scrolled ? 'shadow-lg' : 'shadow-sm'}`}>
-        {/* Top bar */}
-        <div className={`bg-[#1B4F8C] text-white overflow-x-auto no-scrollbar transition-all duration-300 ${scrolled ? 'h-0 overflow-hidden' : ''}`}>
-          <div className="flex items-center justify-between px-4 md:px-8 py-2 gap-8 whitespace-nowrap text-[10px] font-bold uppercase tracking-widest min-w-max">
-            <span className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[#E8593C] animate-pulse" />Envío gratis en compras +$900.000</span>
-            <button onClick={() => navigateTo('financiacion')} className="hover:text-[#E8593C] transition-colors uppercase tracking-widest">15% OFF débito / transferencia</button>
-            <a href="https://wa.me/5492615555555" target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-green-300 transition-colors"><Phone className="w-3 h-3" />WhatsApp atención</a>
-            <span className="flex items-center gap-1.5"><MapPin className="w-3 h-3" />4 sucursales en Mendoza</span>
-            <button onClick={() => navigateTo('profesionales')} className="flex items-center gap-1.5 hover:text-[#E8593C] transition-colors uppercase tracking-widest">
-              <BadgeCheck className="w-3 h-3" />Círculo de Profesionales
-            </button>
+        {/* Top bar: cinta que se desliza sola (marquee CSS, pausa con hover). La copia duplicada cierra el loop. */}
+        <div className={`marquee bg-[#1B4F8C] text-white overflow-hidden motion-reduce:overflow-x-auto no-scrollbar transition-all duration-300 ${scrolled ? 'h-0' : ''}`}>
+          <div className="marquee-track flex py-2 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap" style={{ ['--marquee-dur' as string]: '40s' }}>
+            {[false, true].map(copia => (
+              <div key={String(copia)} aria-hidden={copia || undefined} className={`flex items-center shrink-0 ${copia ? 'motion-reduce:hidden' : ''}`}>
+                {topBarItems.map((item, i) => (
+                  <span key={i} className="flex items-center px-8 border-r border-white/15">
+                    {item.onClick
+                      ? <button tabIndex={copia ? -1 : undefined} onClick={item.onClick} className="flex items-center gap-1.5 uppercase tracking-widest hover:text-[#E8593C] transition-colors">{item.icon}{item.label}</button>
+                      : item.href
+                        ? <a tabIndex={copia ? -1 : undefined} href={item.href} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-green-300 transition-colors">{item.icon}{item.label}</a>
+                        : <span className="flex items-center gap-1.5">{item.icon}{item.label}</span>}
+                  </span>
+                ))}
+              </div>
+            ))}
           </div>
         </div>
 
@@ -583,7 +595,7 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
                         <button onClick={() => { navigateTo('profesionales'); setAccountOpen(false); }}
                           className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 border-t border-slate-100 transition-colors text-sm font-medium text-slate-700 text-left">
                           <img src={CPS_LOGO.isotipo.src} alt="" aria-hidden className="w-7 h-7 shrink-0" />
-                          <span>Círculo de Profesionales<span className="block text-[11px] text-slate-400 font-normal">Para arquitectos y profesionales matriculados</span></span>
+                          <span>Círculo de Profesionales<span className="block text-[11px] text-slate-400 font-normal">Para profesionales de la construcción</span></span>
                         </button>
                       </>
                     )}
@@ -838,7 +850,7 @@ function HomeView({ ctx }: { ctx: AppCtx }) {
                   {HERO_SLIDES[slide].title}
                 </h1>
                 <p className="text-slate-300 text-base mb-8 leading-relaxed max-w-md">{HERO_SLIDES[slide].subtitle}</p>
-                <button onClick={() => navigateTo('category', undefined, 'Grifería')}
+                <button onClick={() => navigateTo(HERO_SLIDES[slide].to)}
                   className="bg-[#E8593C] hover:bg-[#d14a2f] text-white font-black py-4 px-10 rounded-2xl text-sm uppercase tracking-widest transition-all shadow-2xl hover:-translate-y-0.5 active:translate-y-0">
                   {HERO_SLIDES[slide].cta}
                 </button>
@@ -946,9 +958,9 @@ function HomeView({ ctx }: { ctx: AppCtx }) {
             <img src={CPS_LOGO.isotipoBlanco.src} width={CPS_LOGO.isotipoBlanco.w} height={CPS_LOGO.isotipoBlanco.h} alt="" aria-hidden
               className="w-16 h-16 md:w-20 md:h-20 shrink-0" />
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-[#E8593C] mb-1">Arquitectos · Ingenieros · MMO · Diseñadores</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#E8593C] mb-1">Arquitectos · Ingenieros · Desarrolladores · Constructores</p>
               <h2 className="text-2xl md:text-3xl font-black tracking-tight">Círculo de Profesionales Samaco</h2>
-              <p className="text-sm text-slate-300 mt-1 max-w-xl">Precios profesionales, eventos en Mendoza y San Juan y un asesor dedicado. Alta con tu matrícula.</p>
+              <p className="text-sm text-slate-300 mt-1 max-w-xl">Precios profesionales, eventos en Mendoza y San Juan y un asesor dedicado para tus obras.</p>
             </div>
           </div>
           <button onClick={() => navigateTo('profesionales')}
@@ -1347,15 +1359,15 @@ function ProductDetailView({ product, ctx, quantity, setQuantity, activeTab, set
                     </button>
                     <div className="price-tooltip-content">
                       <p className="font-bold mb-2">💳 ¿Cómo se calculan los precios?</p>
-                      <p className="mb-1.5"><strong>En cuotas:</strong> financiado con Visa, Mastercard o BNA+.</p>
-                      <p className="mb-1.5"><strong>Débito/transf. −15%:</strong> precio final pagando con débito o transferencia bancaria.</p>
+                      <p className="mb-1.5"><strong>En cuotas:</strong> 9 cuotas sin interés con BNA+, Visa, Mastercard o Naranja X Visa.</p>
+                      <p className="mb-1.5"><strong>Transferencia −15%:</strong> precio final pagando con transferencia bancaria en la web (débito o crédito en 1 pago: −10%).</p>
                       <p><strong>Precio de lista:</strong> precio de referencia sin descuentos aplicados.</p>
                     </div>
                   </div>
                 </div>
                 <div className="space-y-2.5 border-t border-slate-200 pt-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-slate-600 font-medium">Débito / Transferencia</span>
+                    <span className="text-sm text-slate-600 font-medium">Transferencia bancaria</span>
                     <div className="flex items-center gap-2">
                       <span className="text-lg font-black text-emerald-600">{fmt(product.cashPrice)}</span>
                       <span className="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full">−15%</span>
@@ -1958,7 +1970,7 @@ function ComparadorModal({ isOpen, onClose, products, onAddToCart }: {
   isOpen: boolean; onClose: () => void; products: Product[]; onAddToCart: (p: Product) => void;
 }) {
   const specs: { label: string; getValue: (p: Product) => string }[] = [
-    { label: 'Precio débito/transf.',  getValue: p => fmt(p.cashPrice) },
+    { label: 'Precio con transferencia', getValue: p => fmt(p.cashPrice) },
     { label: 'Precio en cuotas',       getValue: p => `${p.installments}x ${fmt(p.installmentPrice ?? 0)}` },
     { label: 'Precio de lista',        getValue: p => fmt(p.listPrice) },
     { label: 'Marca',                  getValue: p => p.brand },
