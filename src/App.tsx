@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Search, ShoppingCart, Heart, User, ChevronRight, ChevronLeft, ChevronDown,
   Truck, Package, Plus, Minus, Check, Clock, CreditCard, Building2,
@@ -11,7 +11,8 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { CPS, parseRoute, paths, Route, VIEW_PATHS } from './routes';
 import { slugify } from './lib/slug';
 import { aplanarCategorias } from './lib/categorias';
-import { View, Product, CartItem, Review } from './types';
+import { limpiarHtml } from './lib/html';
+import { View, Product, CartItem } from './types';
 import { commerce } from './services';
 import { useCategories, useProductByHandle, useProducts, useProductsByIds, useProductSearch } from './services/hooks';
 import { useProfesional } from './profesionales/context';
@@ -71,39 +72,6 @@ const WHY_SAMACO = [
 
 const BRANDS_LIST = ['FV', 'Roca', 'Eskabe', 'Elizabeth', 'RDAU', 'Genebre', 'Dune', 'Peirano', 'Ferrum', 'Casal'];
 
-const MOCK_REVIEWS: Record<string, Review[]> = {
-  'CM-LN50': [
-    { id: 1, rating: 5, userName: 'Gustavo P.',   date: '8 de Abril, 2025',    title: 'El cemento de siempre, calidad garantizada', comment: 'Compré 40 bolsas para la losa del garage. Fragua perfecta y uniforme. Siempre uso Loma Negra y nunca me falló. En Samaco lo consigo siempre con stock.' },
-    { id: 2, rating: 5, userName: 'Ramón D.',      date: '12 de Marzo, 2025',  title: 'Excelente relación calidad-precio',          comment: 'Para construcción en seco o húmedo, este cemento es el mejor del mercado. Lo compré en pallet para mi casa nueva y la resistencia es perfecta.' },
-    { id: 3, rating: 4, userName: 'Facundo A.',    date: '25 de Enero, 2025',  title: 'Muy bueno, entrega puntual',                 comment: 'Samaco lo trajo a obra en el día acordado. Las bolsas vienen bien cerradas, sin humedad. Solo bajé una estrella porque 2 bolsas venían un poco rotas del transporte.' },
-  ],
-  'HR-AC12': [
-    { id: 1, rating: 5, userName: 'Sebastián M.', date: '3 de Abril, 2025',   title: 'Hierro de primera, sin vuelta',              comment: 'Acindar siempre es calidad. Lo usé para columnas y vigas de mi casa. El corrugado agarra perfecto con el hormigón. Samaco lo entregó en obra sin problema.' },
-    { id: 2, rating: 5, userName: 'Jorge L.',      date: '18 de Febrero, 2025',title: 'Material garantizado',                       comment: 'El hierro viene derecho y sin oxidación. Para el precio que tiene en Samaco, imposible conseguirlo más barato. Muy conformes.' },
-  ],
-  'PT-TE20': [
-    { id: 1, rating: 5, userName: 'Verónica H.',  date: '5 de Abril, 2025',   title: 'Cubre increíble, rinde mucho',               comment: 'Pinté la fachada entera con 2 baldes de 20 litros. La cobertura es impresionante y el color quedó parejo. Ya pasó el verano y sigue como el primer día.' },
-    { id: 2, rating: 4, userName: 'Miguel T.',     date: '14 de Marzo, 2025',  title: 'Muy buena pintura exterior',                 comment: 'Relación calidad precio excelente. Tersuave siempre entrega. El descuento que tiene en Samaco hace que sea muy conveniente.' },
-  ],
-  'TT-RH80': [
-    { id: 1, rating: 5, userName: 'Pablo N.',      date: '10 de Abril, 2025',  title: 'Rheem es lo mejor del mercado',              comment: 'Lo instalé hace 3 meses y funciona impecable. Agua caliente rápido y mantiene la temperatura perfecta. La garantía de 7 años da mucha tranquilidad.' },
-    { id: 2, rating: 5, userName: 'Claudia R.',    date: '22 de Febrero, 2025',title: 'Excelente producto',                         comment: 'Reemplazamos el termotanque viejo y la diferencia es enorme. Mucho más eficiente y silencioso. Samaco nos lo instaló mismo día de la compra.' },
-  ],
-  'AM-BOS9': [
-    { id: 1, rating: 5, userName: 'Ariel G.',      date: '1 de Abril, 2025',   title: 'Herramienta profesional de verdad',          comment: 'Tengo la amoladora hace 2 meses y la uso todos los días en obra. Potente, bien equilibrada y el freno electrónico es una maravilla para la seguridad.' },
-    { id: 2, rating: 5, userName: 'Matías C.',     date: '7 de Marzo, 2025',   title: 'Bosch siempre cumple',                       comment: 'La compré para trabajos pesados de corte y esmerilado. La diferencia con marcas genéricas es enorme. Vale cada peso.' },
-  ],
-  'VL-001': [
-    { id: 1, rating: 5, userName: 'Carlos M.',    date: '15 de Marzo, 2025',  title: 'Excelente calidad y acabado',                comment: 'Instalé este monocomando en mi baño nuevo y quedé encantado. El acabado cromado es impecable y el cierre cerámico es muy suave. Fácil de instalar.' },
-    { id: 2, rating: 5, userName: 'Ana P.',        date: '2 de Febrero, 2025', title: 'Muy buena compra',                           comment: 'Llegó en tiempo y en perfecto estado. La calidad es notable para el precio. Ya lo instalé y funciona fenomenal.' },
-    { id: 3, rating: 4, userName: 'Diego R.',      date: '18 de Enero, 2025',  title: 'Sólido y bien terminado',                    comment: 'Buen producto, la rosca entra perfecta y el cromo no se raya. En general muy conforme.' },
-  ],
-  'PD-060': [
-    { id: 1, rating: 5, userName: 'Lucía F.',     date: '20 de Marzo, 2025',  title: 'Precioso, queda espectacular',               comment: 'El porcelanato oscuro le dio una personalidad increíble a mi sala. El rectificado es perfecto, las juntas quedan mínimas.' },
-    { id: 2, rating: 4, userName: 'Horacio T.',    date: '1 de Febrero, 2025', title: 'Muy buen producto',                          comment: 'Calidad de primera, el color es uniforme y muy lindo. Samaco lo cambió sin problema el material que llegó con defecto.' },
-  ],
-};
-
 const SUCURSALES = [
   {
     id: 'central',
@@ -155,14 +123,6 @@ const fmt = (n: number) => '$' + n.toLocaleString('es-AR');
 // ─────────────────────────────────────────────
 // STAR RATING
 // ─────────────────────────────────────────────
-
-const StarRating = ({ rating, size = 4 }: { rating: number; size?: number }) => (
-  <div className="flex gap-0.5" aria-label={`${rating} de 5 estrellas`}>
-    {[1,2,3,4,5].map(s => (
-      <Star key={s} className={`w-${size} h-${size} ${s <= Math.round(rating) ? 'star-filled' : 'star-empty'}`} />
-    ))}
-  </div>
-);
 
 // ─────────────────────────────────────────────
 // STOCK BADGE
@@ -797,7 +757,7 @@ const Footer = ({ navigateTo }: { navigateTo: (v: View, p?: Product, c?: string)
 
 interface AppCtx {
   navigateTo: (v: View, p?: Product, c?: string) => void;
-  addToCart: (p: Product) => void;
+  addToCart: (p: Product, qty?: number) => void;
   favorites: Set<string>;
   toggleFavorite: (id: string) => void;
   compareList: string[];
@@ -1272,37 +1232,31 @@ interface DetailProps {
   setQuantity: (n: number) => void;
   activeTab: string;
   setActiveTab: (t: string) => void;
-  productReviews: Record<string, Review[]>;
-  submitReview: (sku: string, r: Omit<Review, 'id' | 'date'>) => void;
 }
 
-function ProductDetailView({ product, ctx, quantity, setQuantity, activeTab, setActiveTab, productReviews, submitReview }: DetailProps) {
+function ProductDetailView({ product, ctx, quantity, setQuantity, activeTab, setActiveTab }: DetailProps) {
   const { navigateTo, addToCart, favorites, toggleFavorite, compareList, toggleCompare } = ctx;
 
-  const [activeImg,  setActiveImg]  = useState(0);
-  const [revRating,  setRevRating]  = useState(0);
-  const [revName,    setRevName]    = useState('');
-  const [revTitle,   setRevTitle]   = useState('');
-  const [revComment, setRevComment] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  // Galería con las fotos reales del producto (en Shopify, las que carga el equipo). Si hay una sola, sin miniaturas.
+  const images = product.images?.length ? product.images : [product.image];
+  const [activeImg, setActiveImg] = useState(0);
+  const imgActual = images[Math.min(activeImg, images.length - 1)];
 
-  const mockRevs  = MOCK_REVIEWS[product.sku] ?? [];
-  const userRevs  = productReviews[product.sku] ?? [];
-  const reviews   = [...mockRevs, ...userRevs];
-  const avgRating = reviews.length ? reviews.reduce((a, r) => a + r.rating, 0) / reviews.length : 4.9;
   const { data: sameCategory } = useProducts({ category: product.category, limit: 5 });
-  const related   = sameCategory.filter(p => p.id !== product.id).slice(0, 4);
-  const images    = [product.image, product.image, product.image];
+  const related = sameCategory.filter(p => p.id !== product.id).slice(0, 4);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!revRating || !revName || !revComment) return;
-    setSubmitting(true);
-    setTimeout(() => {
-      submitReview(product.sku, { rating: revRating, userName: revName, title: revTitle || 'Opinión del usuario', comment: revComment });
-      setRevRating(0); setRevName(''); setRevTitle(''); setRevComment(''); setSubmitting(false);
-    }, 700);
-  };
+  const descripcionHtml = useMemo(() => (product.descriptionHtml ? limpiarHtml(product.descriptionHtml) : ''), [product.descriptionHtml]);
+  const tieneDescripcion = Boolean(descripcionHtml || product.description?.trim() || product.features.length);
+
+  // Especificaciones: los datos que siempre existen + las cargadas en Shopify (metafield samaco.especificaciones).
+  const specs: { label: string; value: string }[] = [
+    { label: 'Marca', value: product.brand },
+    { label: 'Código', value: product.sku },
+    ...(product.category ? [{ label: 'Categoría', value: product.category }] : []),
+    ...(product.specs ?? []),
+  ].filter(s => s.value);
+
+  const waConsulta = `https://wa.me/5492615555555?text=${encodeURIComponent(`Hola Samaco! Quiero consultar por: ${product.name} (código ${product.sku}).`)}`;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -1311,8 +1265,10 @@ function ProductDetailView({ product, ctx, quantity, setQuantity, activeTab, set
         {/* Breadcrumb */}
         <nav aria-label="Migas de pan" className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-8 overflow-x-auto no-scrollbar whitespace-nowrap">
           <button onClick={() => navigateTo('home')} className="hover:text-[#1B4F8C] transition-colors shrink-0">Inicio</button>
-          <ChevronRight className="w-3 h-3 shrink-0" />
-          <button onClick={() => navigateTo('category', undefined, product.category)} className="hover:text-[#1B4F8C] transition-colors shrink-0">{product.category}</button>
+          {product.category && <>
+            <ChevronRight className="w-3 h-3 shrink-0" />
+            <button onClick={() => navigateTo('category', undefined, product.category)} className="hover:text-[#1B4F8C] transition-colors shrink-0">{product.category}</button>
+          </>}
           {product.subcategory && <><ChevronRight className="w-3 h-3 shrink-0" /><span className="text-slate-500 shrink-0">{product.subcategory}</span></>}
           <ChevronRight className="w-3 h-3 shrink-0" />
           <span className="text-slate-700 truncate">{product.name}</span>
@@ -1324,37 +1280,44 @@ function ProductDetailView({ product, ctx, quantity, setQuantity, activeTab, set
 
             {/* Gallery */}
             <div className="p-6 md:p-10 bg-slate-50 border-b lg:border-b-0 lg:border-r border-slate-100">
-              <div className="relative aspect-square max-h-[400px] flex items-center justify-center bg-white rounded-2xl overflow-hidden mb-4 group cursor-zoom-in">
-                <img src={images[activeImg]} alt={product.name} referrerPolicy="no-referrer"
-                  className="max-h-full max-w-full object-contain p-8 transition-transform duration-500 group-hover:scale-110" />
+              <div className="relative aspect-square max-h-[440px] flex items-center justify-center bg-white rounded-2xl overflow-hidden mb-4 group">
+                <img src={imgActual} alt={product.name} referrerPolicy="no-referrer"
+                  className="max-h-full max-w-full object-contain p-8 transition-transform duration-500 group-hover:scale-105" />
                 {product.discount && (
                   <span className="absolute top-3 left-3 bg-[#E8593C] text-white text-xs font-black px-2.5 py-1 rounded-full">{product.discount}% OFF</span>
                 )}
-              </div>
-              <div className="flex gap-3">
-                {images.map((img, i) => (
-                  <button key={i} onClick={() => setActiveImg(i)} aria-label={`Ver imagen ${i+1}`}
-                    className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${activeImg === i ? 'border-[#1B4F8C] ring-2 ring-[#1B4F8C]/20' : 'border-slate-200 hover:border-slate-400'}`}>
-                    <img src={img} alt="" referrerPolicy="no-referrer" className="w-full h-full object-contain p-1.5" />
+                {images.length > 1 && <>
+                  <button aria-label="Foto anterior" onClick={() => setActiveImg(i => (i - 1 + images.length) % images.length)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 shadow flex items-center justify-center text-slate-600 hover:text-[#1B4F8C]">
+                    <ChevronLeft className="w-4 h-4" />
                   </button>
-                ))}
+                  <button aria-label="Foto siguiente" onClick={() => setActiveImg(i => (i + 1) % images.length)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 shadow flex items-center justify-center text-slate-600 hover:text-[#1B4F8C]">
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </>}
               </div>
+              {images.length > 1 && (
+                <div className="flex gap-3 overflow-x-auto no-scrollbar">
+                  {images.map((img, i) => (
+                    <button key={img + i} onClick={() => setActiveImg(i)} aria-label={`Ver foto ${i + 1}`} aria-current={activeImg === i}
+                      className={`w-16 h-16 shrink-0 rounded-xl overflow-hidden border-2 bg-white transition-all ${activeImg === i ? 'border-[#1B4F8C] ring-2 ring-[#1B4F8C]/20' : 'border-slate-200 hover:border-slate-400'}`}>
+                      <img src={img} alt="" referrerPolicy="no-referrer" className="w-full h-full object-contain p-1.5" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Product info */}
             <div className="p-6 md:p-10 flex flex-col">
               <div className="flex items-center gap-2 mb-4 flex-wrap">
-                <span className="bg-[#1B4F8C]/10 text-[#1B4F8C] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">{product.brand}</span>
+                {product.brand && <span className="bg-[#1B4F8C]/10 text-[#1B4F8C] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">{product.brand}</span>}
                 {product.isNew && <span className="bg-[#E8593C]/10 text-[#E8593C] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">Nuevo</span>}
                 <StockBadge status={product.stockStatus} />
               </div>
               <h1 className="text-2xl md:text-3xl font-black text-slate-800 leading-tight mb-3">{product.name}</h1>
-              <div className="flex items-center gap-2 mb-4">
-                <StarRating rating={avgRating} size={4} />
-                <span className="text-sm font-bold text-slate-600">{avgRating.toFixed(1)}</span>
-                <button onClick={() => setActiveTab('reseñas')} className="text-sm text-slate-400 hover:text-[#1B4F8C] transition-colors">({reviews.length} opiniones)</button>
-              </div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-6">SKU: {product.sku}</p>
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-6">Código: {product.sku}</p>
 
               {/* Price box */}
               <div className="bg-slate-50 rounded-2xl p-5 mb-6 border border-slate-100">
@@ -1399,14 +1362,14 @@ function ProductDetailView({ product, ctx, quantity, setQuantity, activeTab, set
                 <div className="flex items-center border-2 border-slate-200 rounded-xl overflow-hidden bg-white">
                   <button onClick={() => setQuantity(Math.max(1, quantity - 1))} aria-label="Reducir cantidad"
                     className="w-12 h-12 flex items-center justify-center hover:bg-slate-50 text-slate-500 transition-colors"><Minus className="w-4 h-4" /></button>
-                  <span className="w-10 text-center font-black text-slate-800">{quantity}</span>
+                  <span className="w-10 text-center font-black text-slate-800" aria-live="polite">{quantity}</span>
                   <button onClick={() => setQuantity(quantity + 1)} aria-label="Aumentar cantidad"
                     className="w-12 h-12 flex items-center justify-center hover:bg-slate-50 text-slate-500 transition-colors"><Plus className="w-4 h-4" /></button>
                 </div>
-                <button onClick={() => addToCart(product)}
+                <button onClick={() => addToCart(product, quantity)}
                   disabled={product.stockStatus === 'out_of_stock'}
                   className="flex-1 h-12 bg-[#E8593C] hover:bg-[#d14a2f] disabled:bg-slate-200 disabled:text-slate-400 text-white font-black rounded-xl shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2 text-sm">
-                  <ShoppingCart className="w-5 h-5" />Agregar al carrito
+                  <ShoppingCart className="w-5 h-5" />{product.stockStatus === 'out_of_stock' ? 'Sin stock' : 'Agregar al carrito'}
                 </button>
               </div>
 
@@ -1418,19 +1381,19 @@ function ProductDetailView({ product, ctx, quantity, setQuantity, activeTab, set
                   <Heart className={`w-4 h-4 ${favorites.has(product.id) ? 'fill-[#E8593C]' : ''}`} />
                   {favorites.has(product.id) ? 'Guardado' : 'Guardar'}
                 </button>
-                <a href="https://wa.me/5492615555555" target="_blank" rel="noreferrer"
+                <a href={waConsulta} target="_blank" rel="noreferrer"
                   className="flex-1 flex items-center justify-center gap-2 border-2 border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-white px-4 py-2.5 rounded-xl text-sm font-bold transition-all">
-                  <Phone className="w-4 h-4" />Consultar
+                  <Phone className="w-4 h-4" />{product.stockStatus === 'out_of_stock' ? 'Consultar disponibilidad' : 'Consultar'}
                 </a>
               </div>
 
               {/* Perks */}
               <div className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-5">
                 {([
-                  [Truck,   'Entrega en obra',  'Flota propia'],
-                  [Clock,   'Retiro express',   'Listo en 60 min'],
-                  [Shield,  'Garantía oficial', 'Del fabricante'],
-                  [Package, 'Stock real',       'En sucursales'],
+                  [Truck,   'Entrega en obra',     'Flota propia'],
+                  [MapPin,  'Retiro en sucursal',  'Elegilo al pagar'],
+                  [Shield,  'Garantía oficial',    'Del fabricante'],
+                  [Package, 'Stock real',          'En sucursales'],
                 ] as const).map(([Icon, title, sub]) => (
                   <div key={title} className="flex items-center gap-3">
                     <div className="w-9 h-9 bg-slate-100 rounded-xl flex items-center justify-center shrink-0">
@@ -1448,13 +1411,12 @@ function ProductDetailView({ product, ctx, quantity, setQuantity, activeTab, set
 
           {/* TABS */}
           <div className="border-t border-slate-100">
-            <div className="flex overflow-x-auto no-scrollbar border-b border-slate-100">
+            <div role="tablist" className="flex overflow-x-auto no-scrollbar border-b border-slate-100">
               {([
-                ['detalles',        'Descripción'],
+                ['detalles',         'Descripción'],
                 ['especificaciones', 'Especificaciones'],
-                ['reseñas',         `Reseñas (${reviews.length})`],
               ] as const).map(([key, label]) => (
-                <button key={key} onClick={() => setActiveTab(key)}
+                <button key={key} role="tab" aria-selected={activeTab === key} onClick={() => setActiveTab(key)}
                   className={`px-6 py-4 text-xs font-black uppercase tracking-widest border-b-2 transition-all whitespace-nowrap
                     ${activeTab === key ? 'border-[#1B4F8C] text-[#1B4F8C]' : 'border-transparent text-slate-400 hover:text-slate-700'}`}>
                   {label}
@@ -1463,124 +1425,42 @@ function ProductDetailView({ product, ctx, quantity, setQuantity, activeTab, set
             </div>
 
             <div className="p-6 md:p-10">
-              {/* Descripción */}
-              {activeTab === 'detalles' && (
+              {/* Descripción: HTML de Shopify (limpio) o texto plano; si no hay nada, invitación a consultar */}
+              {activeTab !== 'especificaciones' && (
                 <div className="max-w-2xl">
-                  <p className="text-slate-600 leading-relaxed mb-8">{product.description}</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {product.features.map((f, i) => (
-                      <div key={i} className="flex items-start gap-3 bg-slate-50 rounded-xl p-3">
-                        <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center shrink-0 mt-0.5">
-                          <Check className="w-3 h-3 text-emerald-600" />
+                  {descripcionHtml
+                    ? <div className="descripcion-producto text-slate-600 leading-relaxed mb-8" dangerouslySetInnerHTML={{ __html: descripcionHtml }} />
+                    : product.description?.trim() && <p className="text-slate-600 leading-relaxed mb-8 whitespace-pre-line">{product.description}</p>}
+                  {product.features.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {product.features.map((f, i) => (
+                        <div key={i} className="flex items-start gap-3 bg-slate-50 rounded-xl p-3">
+                          <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center shrink-0 mt-0.5">
+                            <Check className="w-3 h-3 text-emerald-600" />
+                          </div>
+                          <span className="text-sm text-slate-700 font-medium">{f}</span>
                         </div>
-                        <span className="text-sm text-slate-700 font-medium">{f}</span>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
+                  {!tieneDescripcion && (
+                    <p className="text-sm text-slate-500">
+                      Estamos completando la información de este producto. ¿Tenés dudas?{' '}
+                      <a href={waConsulta} target="_blank" rel="noreferrer" className="font-bold text-[#1B4F8C] hover:underline">Consultanos por WhatsApp</a>.
+                    </p>
+                  )}
                 </div>
               )}
 
-              {/* Especificaciones */}
+              {/* Especificaciones: solo datos reales */}
               {activeTab === 'especificaciones' && (
                 <div className="max-w-xl">
-                  {([
-                    ['Marca',               product.brand],
-                    ['SKU / Código',        product.sku],
-                    ['Categoría',           product.category],
-                    ['Color / Acabado',     'Cromo Brillante'],
-                    ['Material Principal',  'Latón de Alta Pureza'],
-                    ['Sistema de Cierre',   'Cerámico Premium'],
-                    ['Garantía',            '5 Años de Fábrica'],
-                    ['País de Fabricación', 'Argentina / Brasil'],
-                  ] as const).map(([label, val]) => (
-                    <div key={label} className="flex justify-between items-center py-3.5 border-b border-slate-100 last:border-none">
+                  {specs.map(({ label, value }) => (
+                    <div key={label} className="flex justify-between items-center gap-6 py-3.5 border-b border-slate-100 last:border-none">
                       <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{label}</span>
-                      <span className="text-sm font-semibold text-slate-700">{val}</span>
+                      <span className="text-sm font-semibold text-slate-700 text-right">{value}</span>
                     </div>
                   ))}
-                </div>
-              )}
-
-              {/* Reseñas */}
-              {activeTab === 'reseñas' && (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                  <div className="lg:col-span-4 space-y-6">
-                    {/* Summary */}
-                    <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 text-center">
-                      <p className="text-5xl font-black text-slate-800 mb-1">{avgRating.toFixed(1)}</p>
-                      <div className="flex justify-center"><StarRating rating={avgRating} size={5} /></div>
-                      <p className="text-xs text-slate-400 mt-2">{reviews.length} opiniones</p>
-                      <div className="mt-5 space-y-2">
-                        {[5,4,3,2,1].map(score => {
-                          const count = reviews.filter(r => r.rating === score).length;
-                          const pct   = reviews.length ? (count / reviews.length) * 100 : (score === 5 ? 82 : score === 4 ? 12 : 6);
-                          return (
-                            <div key={score} className="flex items-center gap-2">
-                              <span className="text-[10px] font-bold text-slate-400 w-3">{score}</span>
-                              <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                                <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.6 }}
-                                  className="h-full bg-amber-400 rounded-full" />
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                    {/* Form */}
-                    <div className="bg-white rounded-2xl border-2 border-slate-100 p-6 shadow-sm">
-                      <h4 className="font-black text-slate-800 mb-1">Dejá tu opinión</h4>
-                      <p className="text-xs text-slate-400 mb-5">Tu experiencia ayuda a otros compradores.</p>
-                      <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Calificación</p>
-                          <div className="flex gap-1">
-                            {[1,2,3,4,5].map(s => (
-                              <button key={s} type="button" onClick={() => setRevRating(s)} aria-label={`${s} estrellas`}
-                                className="transition-transform active:scale-90">
-                                <Star className={`w-7 h-7 ${s <= revRating ? 'star-filled' : 'star-empty'}`} />
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                        <input type="text" placeholder="Tu nombre completo" value={revName} required onChange={e => setRevName(e.target.value)}
-                          className="w-full bg-slate-50 border-2 border-slate-100 focus:border-[#1B4F8C] focus:bg-white rounded-xl px-4 py-3 text-sm outline-none transition-all" />
-                        <input type="text" placeholder="Título de la reseña (opcional)" value={revTitle} onChange={e => setRevTitle(e.target.value)}
-                          className="w-full bg-slate-50 border-2 border-slate-100 focus:border-[#1B4F8C] focus:bg-white rounded-xl px-4 py-3 text-sm outline-none transition-all" />
-                        <textarea placeholder="Tu comentario..." value={revComment} required rows={3} onChange={e => setRevComment(e.target.value)}
-                          className="w-full bg-slate-50 border-2 border-slate-100 focus:border-[#1B4F8C] focus:bg-white rounded-xl px-4 py-3 text-sm outline-none transition-all resize-none" />
-                        <button type="submit" disabled={submitting}
-                          className={`w-full py-3 rounded-xl text-sm font-black transition-all
-                            ${submitting ? 'bg-slate-100 text-slate-400' : 'bg-[#1B4F8C] hover:bg-[#163f70] text-white shadow-md hover:-translate-y-0.5'}`}>
-                          {submitting ? 'Enviando...' : 'Publicar reseña'}
-                        </button>
-                      </form>
-                    </div>
-                  </div>
-
-                  {/* Review list */}
-                  <div className="lg:col-span-8 space-y-6">
-                    <AnimatePresence>
-                      {reviews.map(r => (
-                        <motion.div key={r.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-                          className="border-b border-slate-100 pb-6 last:border-none">
-                          <div className="flex items-start justify-between mb-2">
-                            <div>
-                              <StarRating rating={r.rating} size={4} />
-                              <p className="font-black text-slate-800 mt-2">{r.title}</p>
-                            </div>
-                            <span className="text-[10px] text-slate-400 shrink-0 ml-4">{r.date}</span>
-                          </div>
-                          <p className="text-xs text-slate-500 font-semibold mb-2 flex items-center gap-1.5">
-                            <User className="w-3.5 h-3.5 text-[#1B4F8C]" />{r.userName}
-                          </p>
-                          <p className="text-sm text-slate-600 leading-relaxed italic">"{r.comment}"</p>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                    {reviews.length === 0 && (
-                      <p className="text-slate-400 text-sm py-8 text-center">Sé el primero en opinar sobre este producto.</p>
-                    )}
-                  </div>
                 </div>
               )}
             </div>
@@ -1594,7 +1474,7 @@ function ProductDetailView({ product, ctx, quantity, setQuantity, activeTab, set
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {related.map(p => (
                 <ProductCard key={p.id} product={p}
-                  onClick={() => { navigateTo('product', p); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  onClick={() => navigateTo('product', p)}
                   onAddToCart={addToCart} isFavorite={favorites.has(p.id)} onToggleFavorite={toggleFavorite}
                   isComparing={compareList.includes(p.id)} onToggleCompare={toggleCompare} />
               ))}
@@ -2069,7 +1949,6 @@ export default function App() {
   });
   const [quantity,        setQuantity]        = useState(1);
   const [activeTab,       setActiveTab]       = useState('detalles');
-  const [productReviews,  setProductReviews]  = useState<Record<string, Review[]>>({});
   const [compareList,     setCompareList]     = useState<string[]>([]);
   const [comparadorOpen,  setComparadorOpen]  = useState(false);
   const { data: compareProducts } = useProductsByIds(compareList);
@@ -2127,11 +2006,11 @@ export default function App() {
     document.title = t ? `${t} | Samaco` : 'Samaco - Materiales de Construcción | Mendoza';
   }, [route.view, routeCategory?.name, routeProduct?.name]);
 
-  const addToCart = (product: Product) => {
+  const addToCart = (product: Product, qty = 1) => {
     setCartItems(prev => {
       const existing = prev.find(i => i.product.id === product.id);
-      if (existing) return prev.map(i => i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
-      return [...prev, { product, quantity: 1 }];
+      if (existing) return prev.map(i => i.product.id === product.id ? { ...i, quantity: i.quantity + qty } : i);
+      return [...prev, { product, quantity: qty }];
     });
     setCartOpen(true);
   };
@@ -2151,13 +2030,7 @@ export default function App() {
     prev.includes(id) ? prev.filter(x => x !== id) : prev.length >= 3 ? prev : [...prev, id]
   );
 
-  const submitReview = (sku: string, r: Omit<Review, 'id' | 'date'>) => {
-    const review: Review = {
-      ...r, id: Date.now(),
-      date: new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date()),
-    };
-    setProductReviews(prev => ({ ...prev, [sku]: [review, ...(prev[sku] ?? [])] }));
-  };
+
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -2217,8 +2090,6 @@ export default function App() {
               setQuantity={setQuantity}
               activeTab={activeTab}
               setActiveTab={setActiveTab}
-              productReviews={productReviews}
-              submitReview={submitReview}
             />
           )}
         </AnimatePresence>

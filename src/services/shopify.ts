@@ -16,6 +16,7 @@ import { aplanarCategorias } from '../lib/categorias';
  *      precio_contado  (number_decimal)          precio débito/transferencia; si falta, precio −15 %.
  *      cuotas          (number_integer)          cuotas sin interés; si falta, 9.
  *      caracteristicas (list.single_line_text_field)
+ *      especificaciones (json)                   {"Medida": "60x60", "Uso": "Interior", …} → tabla de la ficha
  *  - Tags: `destacado` (home) y `nuevo` (badge).
  */
 
@@ -48,20 +49,21 @@ async function storefront<T>(query: string, variables: Record<string, unknown> =
 
 const PRODUCT_FIELDS = /* GraphQL */ `
   fragment ProductFields on Product {
-    id handle title description vendor productType tags availableForSale
+    id handle title description descriptionHtml vendor productType tags availableForSale
     featuredImage { url }
-    images(first: 5) { nodes { url } }
+    images(first: 10) { nodes { url } }
     variants(first: 1) {
       nodes { id sku availableForSale price { amount } compareAtPrice { amount } }
     }
     cashPrice:    metafield(namespace: "samaco", key: "precio_contado")  { value }
     installments: metafield(namespace: "samaco", key: "cuotas")          { value }
     features:     metafield(namespace: "samaco", key: "caracteristicas") { value }
+    specs:        metafield(namespace: "samaco", key: "especificaciones") { value }
   }
 `;
 
 interface ShopifyProduct {
-  id: string; handle: string; title: string; description: string;
+  id: string; handle: string; title: string; description: string; descriptionHtml: string;
   vendor: string; productType: string; tags: string[]; availableForSale: boolean;
   featuredImage: { url: string } | null;
   images: { nodes: { url: string }[] };
@@ -72,11 +74,23 @@ interface ShopifyProduct {
   cashPrice: { value: string } | null;
   installments: { value: string } | null;
   features: { value: string } | null;
+  specs: { value: string } | null;
 }
 
 function parseList(value: string | undefined): string[] {
   if (!value) return [];
   try { const v = JSON.parse(value); return Array.isArray(v) ? v.map(String) : []; } catch { return []; }
+}
+
+/** Metafield JSON {"Medida": "60x60", "Uso": "Interior"} → filas de la tabla de especificaciones. */
+function parseSpecs(value: string | undefined): Product['specs'] {
+  if (!value) return undefined;
+  try {
+    const v = JSON.parse(value);
+    if (!v || typeof v !== 'object' || Array.isArray(v)) return undefined;
+    const rows = Object.entries(v).filter(([, val]) => val !== null && val !== '').map(([label, val]) => ({ label, value: String(val) }));
+    return rows.length ? rows : undefined;
+  } catch { return undefined; }
 }
 
 function toProduct(p: ShopifyProduct): Product {
@@ -107,7 +121,9 @@ function toProduct(p: ShopifyProduct): Product {
     stockStatus: available ? 'in_stock' : 'out_of_stock',
     sku: variant?.sku ?? '',
     description: p.description,
+    descriptionHtml: p.descriptionHtml || undefined,
     features: parseList(p.features?.value),
+    specs: parseSpecs(p.specs?.value),
     discount: compareAt > price ? Math.round((1 - price / compareAt) * 100) : undefined,
     isNew: p.tags.includes('nuevo'),
     isFeatured: p.tags.includes('destacado'),

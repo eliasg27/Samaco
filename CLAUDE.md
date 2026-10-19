@@ -79,6 +79,14 @@ Club para arquitectos, ingenieros, desarrolladores inmobiliarios, constructores 
 - Cada producto del front tiene que poder mapearse a una variante de Shopify (el checkout necesita el `variantId`).
 - Precios en ARS. Mantener el modelo de precio lista / débito-transferencia / cuotas.
 
+## Definiciones de negocio (20/10/2026)
+
+- **Productos: vienen de PalJet** vía el Samaco Connector (otro equipo; doc en Drive "9. Ecommerce", documentos 01-04). El connector crea el producto (título base, SKU = código de artículo, precio, stock, marca = vendor, rubro = tipo de producto) y después solo actualiza precio y stock. Tiene que publicarlo en el canal **Headless**, si no la Storefront API no lo ve.
+- **Fotos y descripciones: las carga Pinta en Shopify.** El connector nunca las pisa. Carga masiva posible por Admin API con `scripts/shopify-admin.mjs` (app "Sitio Samaco (Claude)", credenciales en `.env.local`).
+- **Categorías:** colecciones automáticas por tipo de producto (rubro de PalJet), enlazadas en el menú "Categorías sitio".
+- **Pagos: todo por Mobbex** (app de Shopify; recomendada "Mobbex Transparent"). Cuotas, promos y descuentos se configuran en la consola de Mobbex: lo que muestra `src/financiacion/data.ts` tiene que coincidir.
+- **CUIT/DNI:** el connector lo lee del pedido como note attribute `cuit` → en headless se manda como atributo del carrito (`cartCreate` attributes). Pendiente de confirmar en la reunión con Samaco antes de implementarlo.
+
 ## Pendiente de definir
 
 - **Árbol de categorías**: se va a rehacer más adelante con Samaco. Samaco **no vende Herramientas** (la categoría está en el mock y en el menú; sacarla al rehacer el árbol). Mantener: categoría Ofertas y las cucardas de producto (Nuevo / % OFF).

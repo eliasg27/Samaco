@@ -19,7 +19,11 @@ export interface Product {
   stockStatus: 'in_stock' | 'low_stock' | 'out_of_stock';
   sku: string;
   description: string;
+  /** Descripción con formato (Shopify: descriptionHtml, la cargan desde el admin). */
+  descriptionHtml?: string;
   features: string[];
+  /** Especificaciones técnicas (Shopify: metafield samaco.especificaciones, JSON {"Medida": "60x60", …}). */
+  specs?: { label: string; value: string }[];
   discount?: number;
   isNew?: boolean;
   isFeatured?: boolean;
