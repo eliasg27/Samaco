@@ -99,7 +99,7 @@ function toProduct(p: ShopifyProduct): Product {
     cashPrice,
     installments,
     installmentPrice: Math.round(price / installments),
-    image: p.featuredImage?.url ?? images[0] ?? '',
+    image: p.featuredImage?.url ?? images[0] ?? '/sin-foto.svg', // Paljet/Shopify pueden traer productos sin foto
     images,
     stock: available,
     stockStatus: available ? 'in_stock' : 'out_of_stock',
