@@ -3,37 +3,37 @@
     {
       "archivo": "confirmacion-de-pedido.liquid",
       "plantillaEnShopify": "Confirmación del pedido",
-      "asunto": "Recibimos tu pedido {{ order_name }} 🧱"
+      "asunto": "Recibimos tu pedido {{ name }}"
     },
     {
       "archivo": "listo-para-retirar.liquid",
-      "plantillaEnShopify": "Listo para retiro en tienda (retiro local)",
-      "asunto": "Tu pedido {{ order_name }} está listo para retirar"
+      "plantillaEnShopify": "Listo para retiro en tienda (ready_for_pickup)",
+      "asunto": "Tu pedido {{ name }} está listo para retirar"
     },
     {
       "archivo": "confirmacion-de-envio.liquid",
       "plantillaEnShopify": "Confirmación de envío",
-      "asunto": "Tu pedido {{ order_name }} está en camino 🚚"
+      "asunto": "Tu pedido {{ name }} está en camino"
     },
     {
       "archivo": "pedido-en-reparto.liquid",
-      "plantillaEnShopify": "Pedido en reparto",
-      "asunto": "Hoy llega tu pedido {{ order_name }}"
+      "plantillaEnShopify": "En reparto + Pedido en reparto local (shipment_out_for_delivery, local_out_for_delivery)",
+      "asunto": "Hoy llega tu pedido {{ name }}"
     },
     {
       "archivo": "pedido-entregado.liquid",
-      "plantillaEnShopify": "Pedido entregado",
-      "asunto": "Entregamos tu pedido {{ order_name }}"
+      "plantillaEnShopify": "Entregado + Pedido entregado localmente (shipment_delivered, local_delivered)",
+      "asunto": "Entregamos tu pedido {{ name }}"
     },
     {
       "archivo": "pedido-cancelado.liquid",
       "plantillaEnShopify": "Pedido cancelado",
-      "asunto": "Cancelamos tu pedido {{ order_name }}"
+      "asunto": "Cancelamos tu pedido {{ name }}"
     },
     {
       "archivo": "reembolso.liquid",
-      "plantillaEnShopify": "Reembolso",
-      "asunto": "Te reintegramos {{ amount | money }} del pedido {{ order_name }}"
+      "plantillaEnShopify": "Reembolso del pedido (refund_notification)",
+      "asunto": "Te reintegramos dinero del pedido {{ name }}"
     },
     {
       "archivo": "checkout-abandonado.liquid",
@@ -43,7 +43,7 @@
     {
       "archivo": "personal-nuevo-pedido.liquid",
       "plantillaEnShopify": "Nuevo pedido (notificaciones para el personal)",
-      "asunto": "[Pedido web] {{ order_name }} · {{ total_price | money }} · {% if delivery_method == \"pick-up\" %}Retiro {{ shipping_method.title }}{% else %}Envío{% endif %}"
+      "asunto": "[Pedido web] {{ name }} · {{ total_price | money }} · {% if delivery_method == 'pick-up' %}Retiro {{ shipping_method.title }}{% else %}Envío{% endif %}"
     }
   ],
   "cps": [

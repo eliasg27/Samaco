@@ -15,23 +15,18 @@ Los logos de los mails son PNG (`public/logo-samaco-blanco-mail.png` y `public/c
 
 ## 1. Mails de compra (Shopify)
 
-En el admin de Shopify, entrá a **Configuración → Notificaciones → Notificaciones para clientes**. Por cada plantilla:
+**Estado (19/10/2026): cargados en la tienda** (mu01is-1m), con asunto, y revisados con la vista previa de Shopify. Si cambiás una plantilla, regenerá y volvé a pegarla en **Configuración → Notificaciones → Notificaciones para clientes → (plantilla) → Editar código**. Para volver a la de Shopify: **Vista previa → Revertir a**.
 
-1. Abrila y tocá **Editar código**.
-2. Reemplazá todo el cuerpo con el contenido del `.liquid` correspondiente.
-3. Pegá el asunto que figura en `asuntos.json`.
-4. Revisala con **Vista previa** y mandate un **Enviar correo de prueba**.
-
-| Archivo | Plantilla en Shopify |
+| Archivo | Plantilla en Shopify (id en la URL `email_templates/<id>`) |
 |---|---|
-| `confirmacion-de-pedido.liquid` | Confirmación del pedido |
-| `listo-para-retirar.liquid` | Listo para retiro en tienda (retiro local) |
-| `confirmacion-de-envio.liquid` | Confirmación de envío |
-| `pedido-en-reparto.liquid` | Pedido en reparto |
-| `pedido-entregado.liquid` | Pedido entregado |
-| `pedido-cancelado.liquid` | Pedido cancelado |
-| `reembolso.liquid` | Reembolso |
-| `checkout-abandonado.liquid` | Pago abandonado |
+| `confirmacion-de-pedido.liquid` | Confirmación de pedido (`order_confirmation`) |
+| `confirmacion-de-envio.liquid` | Confirmación de envío (`shipping_confirmation`) |
+| `listo-para-retirar.liquid` | Listo para retiro en tienda (`ready_for_pickup`) |
+| `pedido-en-reparto.liquid` | En reparto (`shipment_out_for_delivery`) **y** Pedido en reparto local (`local_out_for_delivery`) |
+| `pedido-entregado.liquid` | Entregado (`shipment_delivered`) **y** Pedido entregado localmente (`local_delivered`) |
+| `pedido-cancelado.liquid` | Pedido cancelado (`order_cancelled`) |
+| `reembolso.liquid` | Reembolso del pedido (`refund_notification`) |
+| `checkout-abandonado.liquid` | **No cargado** (ver abajo) |
 
 Lo que cubren:
 - **Retiro o envío:** la confirmación cambia según el método. Con retiro muestra la sucursal y pide el número de pedido y el DNI; con envío muestra la dirección. Para retiro hay que tener activado *Retiro local* en cada sucursal (Configuración → Envío y entrega).
@@ -40,19 +35,15 @@ Lo que cubren:
 - **CUIT/DNI:** sale del atributo `cuit` del carrito, cuando lo implementemos.
 - **Links:** van a nuestro sitio, no a la tienda de Shopify, que en headless no es pública. Lo único que queda en Shopify es "Ver estado del pedido" y "Terminar mi compra", que es lo correcto.
 
-**Carrito abandonado:** se activa en **Configuración → Pago (Checkout) → Pagos abandonados**. Recomendado:
-- enviar a quienes no se suscribieron también;
-- mandar el mail **10 horas** después.
-
-Si preferís una secuencia de dos mails (por ejemplo a las 10 h y a las 48 h), se arma en **Marketing → Automatizaciones** con Shopify Email.
+**Carrito abandonado:** Shopify ya no usa la plantilla "Pago abandonado" de Notificaciones: ahora es una **automatización de marketing** (Marketing → Automatizaciones, con el editor de Shopify Email, que no acepta HTML propio). `checkout-abandonado.liquid` queda como referencia de textos. Para activarlo: armar la automatización "Pago abandonado" con el logo, el color y estos textos, enviarla **10 h** después del abandono (y opcionalmente un segundo mail a las 48 h). Revisar en la automatización a quién se envía (solo suscriptores o todos los que dejaron su mail).
 
 **Mails que no tocamos:** cuentas de cliente, tarjetas de regalo y POS siguen con la plantilla de Shopify. Antes de lanzar hay que cargar el logo y el color `#1B4F8C` en **Personalizar plantillas de email**.
 
 ## 2. Avisos internos de pedidos
 
 Entrá a **Configuración → Notificaciones → Notificaciones para el personal**:
-1. En **Nuevo pedido**, pegá `personal-nuevo-pedido.liquid` y su asunto. El asunto muestra número, total y si es retiro (con la sucursal) o envío.
-2. Agregá los destinatarios: ventas y cada sucursal.
+1. **Nuevo pedido** (`new_order_notification`): `personal-nuevo-pedido.liquid` **ya cargado**. El asunto muestra número, total y si es retiro (con la sucursal) o envío.
+2. Destinatarios: hoy solo `ecommercesamaco@gmail.com` (todos los pedidos). Falta agregar ventas y cada sucursal cuando Samaco pase las casillas.
 
 Shopify no filtra este aviso por sucursal, así que les llega a todos. Por eso el asunto dice la sucursal: así cada una filtra en su casilla. Si hace falta que solo le llegue a la sucursal del retiro, se arma con **Shopify Flow** (incluido en Grow): "Pedido creado" → condición por método de entrega → "Enviar email interno".
 

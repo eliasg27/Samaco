@@ -38,7 +38,7 @@ const productos = (lista = 'line_items', item = 'line') => `
 const totales = `
 ${tablaFilas(`
   ${fila('Subtotal', '{{ subtotal_price | money }}')}
-  {%- if discounts_amount > 0 %}${fila('Descuentos', '−{{ discounts_amount | money }}')}{% endif %}
+  {%- if total_discounts > 0 %}${fila('Descuentos', '−{{ total_discounts | money }}')}{% endif %}
   {%- if requires_shipping and delivery_method != 'pick-up' %}${fila('Envío', "{% if shipping_price > 0 %}{{ shipping_price | money }}{% else %}Sin cargo{% endif %}")}{% endif %}
   ${fila('Total', '{{ total_price | money }}', { fuerte: true })}
 `)}`;
@@ -48,7 +48,8 @@ const medioDePago = `
 {%- assign pagos_ok = transactions | where: 'status', 'success' -%}
 {%- if pagos_ok.size == 0 %}{% assign pagos_ok = transactions %}{% endif -%}
 {%- for t in pagos_ok limit: 1 %}
-<p style="${f}margin:12px 0 0;font-size:13px;color:${color.suave};">Pagado con {{ t.gateway_display_name | default: t.gateway }}{% if t.payment_details.credit_card_company %} · {{ t.payment_details.credit_card_company }}{% if t.payment_details.credit_card_last_four_digits %} terminada en {{ t.payment_details.credit_card_last_four_digits }}{% endif %}{% endif %}</p>
+<p style="${f}margin:12px 0 0;font-size:13px;color:${color.suave};">{%- assign medio = t.gateway_display_name | default: t.gateway -%}
+Pagado con {{ medio }}{% if t.payment_details.credit_card_company and t.payment_details.credit_card_company != medio %} · {{ t.payment_details.credit_card_company }}{% endif %}{% if t.payment_details.credit_card_last_four_digits %} terminada en {{ t.payment_details.credit_card_last_four_digits }}{% endif %}</p>
 {%- endfor %}`;
 
 const entrega = `
@@ -66,7 +67,7 @@ export const plantillasShopify = [
   {
     archivo: 'confirmacion-de-pedido.liquid',
     shopify: 'Confirmación del pedido',
-    asunto: 'Recibimos tu pedido {{ order_name }} 🧱',
+    asunto: 'Recibimos tu pedido {{ name }}',
     preheader: 'Gracias por tu compra en Samaco. Acá tenés el detalle.',
     cuerpo: `
 ${titulo('¡Gracias por tu compra{% if customer.first_name %}, {{ customer.first_name }}{% endif %}!')}
@@ -83,8 +84,8 @@ ${notaSuave('La factura te llega por separado. Si necesitás cambiar algo del pe
   },
   {
     archivo: 'listo-para-retirar.liquid',
-    shopify: 'Listo para retiro en tienda (retiro local)',
-    asunto: 'Tu pedido {{ order_name }} está listo para retirar',
+    shopify: 'Listo para retiro en tienda (ready_for_pickup)',
+    asunto: 'Tu pedido {{ name }} está listo para retirar',
     preheader: 'Ya podés pasar a buscarlo por la sucursal.',
     cuerpo: `
 ${titulo('¡Tu pedido está listo!')}
@@ -93,6 +94,7 @@ ${pasos(['Recibido', 'Preparado', 'Listo para retirar'], 3)}
 ${subtitulo('Dónde retirarlo')}
 ${caja(`<strong>{% if location.name %}{{ location.name }}{% else %}{{ shipping_method.title }}{% endif %}</strong>
 {%- if location.address1 %}<br>{{ location.address1 }}{% if location.city %}, {{ location.city }}{% endif %}{% endif %}
+{%- if pickup_instructions != blank %}<br><br>{{ pickup_instructions }}{% endif %}
 <br><br>Presentá el número de pedido <strong>{{ order_name }}</strong> y el DNI de quien hizo la compra. Si retira otra persona, avisanos por WhatsApp.`)}
 ${boton('Ver horarios y cómo llegar', '{{ sitio }}/sucursales', color.primario)}
 ${subtitulo('Qué vas a retirar')}
@@ -102,7 +104,7 @@ ${notaSuave('Si el pedido es voluminoso, vení con un vehículo adecuado. Tenemo
   {
     archivo: 'confirmacion-de-envio.liquid',
     shopify: 'Confirmación de envío',
-    asunto: 'Tu pedido {{ order_name }} está en camino 🚚',
+    asunto: 'Tu pedido {{ name }} está en camino',
     preheader: 'Despachamos tu pedido. Seguí el envío desde acá.',
     cuerpo: `
 ${titulo('Tu pedido está en camino')}
@@ -122,8 +124,8 @@ ${notaSuave('Para materiales pesados, alguien tiene que estar en el domicilio pa
   },
   {
     archivo: 'pedido-en-reparto.liquid',
-    shopify: 'Pedido en reparto',
-    asunto: 'Hoy llega tu pedido {{ order_name }}',
+    shopify: 'En reparto + Pedido en reparto local (shipment_out_for_delivery, local_out_for_delivery)',
+    asunto: 'Hoy llega tu pedido {{ name }}',
     preheader: 'Tu pedido salió a reparto.',
     cuerpo: `
 ${titulo('Hoy llega tu pedido')}
@@ -133,8 +135,8 @@ ${caja('{{ shipping_address | format_address }}')}
   },
   {
     archivo: 'pedido-entregado.liquid',
-    shopify: 'Pedido entregado',
-    asunto: 'Entregamos tu pedido {{ order_name }}',
+    shopify: 'Entregado + Pedido entregado localmente (shipment_delivered, local_delivered)',
+    asunto: 'Entregamos tu pedido {{ name }}',
     preheader: 'Tu pedido fue entregado. ¡Gracias por elegir Samaco!',
     cuerpo: `
 ${titulo('¡Pedido entregado!')}
@@ -145,7 +147,7 @@ ${boton('Seguir comprando', '{{ sitio }}', color.primario)}`,
   {
     archivo: 'pedido-cancelado.liquid',
     shopify: 'Pedido cancelado',
-    asunto: 'Cancelamos tu pedido {{ order_name }}',
+    asunto: 'Cancelamos tu pedido {{ name }}',
     preheader: 'Tu pedido fue cancelado.',
     cuerpo: `
 ${titulo('Tu pedido fue cancelado')}
@@ -164,8 +166,8 @@ ${boton('Volver a la tienda', '{{ sitio }}', color.primario)}`,
   },
   {
     archivo: 'reembolso.liquid',
-    shopify: 'Reembolso',
-    asunto: 'Te reintegramos {{ amount | money }} del pedido {{ order_name }}',
+    shopify: 'Reembolso del pedido (refund_notification)',
+    asunto: 'Te reintegramos dinero del pedido {{ name }}',
     preheader: 'Procesamos un reintegro de tu pedido.',
     cuerpo: `
 ${titulo('Procesamos tu reintegro')}
@@ -195,12 +197,12 @@ export const plantillasPersonal = [
   {
     archivo: 'personal-nuevo-pedido.liquid',
     shopify: 'Nuevo pedido (notificaciones para el personal)',
-    asunto: '[Pedido web] {{ order_name }} · {{ total_price | money }} · {% if delivery_method == "pick-up" %}Retiro {{ shipping_method.title }}{% else %}Envío{% endif %}',
+    asunto: "[Pedido web] {{ name }} · {{ total_price | money }} · {% if delivery_method == 'pick-up' %}Retiro {{ shipping_method.title }}{% else %}Envío{% endif %}",
     preheader: 'Entró un pedido nuevo en el sitio.',
     marca: 'interno',
     cuerpo: `
 ${titulo('Nuevo pedido {{ order_name }}')}
-${parrafo('{{ created_at | date: "%d/%m/%Y %H:%M" }} · Pago: <strong>{% case financial_status %}{% when "paid" %}acreditado{% when "pending" %}pendiente{% when "authorized" %}autorizado{% else %}{{ financial_status }}{% endcase %}</strong>')}
+${parrafo('{{ created_at | date: "%d/%m/%Y %H:%M" }} · Pago: <strong>{% case financial_status %}{% when "paid" %}acreditado{% when "pending" %}pendiente{% when "authorized" %}autorizado{% when "partially_paid" %}pago parcial{% when "refunded" %}reembolsado{% when "voided" %}anulado{% else %}{{ financial_status }}{% endcase %}</strong>')}
 ${subtitulo('Cliente')}
 ${caja(`<strong>{{ billing_address.name | default: customer.name }}</strong><br>
 {{ email }}{% if billing_address.phone or shipping_address.phone %} · {{ billing_address.phone | default: shipping_address.phone }}{% endif %}
@@ -212,7 +214,7 @@ ${subtitulo('Productos')}
 ${productos()}
 ${totales}
 ${medioDePago}
-${boton('Abrir en Shopify', '{{ shop.url }}/admin/orders/{{ id }}', color.primario)}`,
+${boton('Abrir en Shopify', 'https://{{ shop.permanent_domain }}/admin/orders/{{ id }}', color.primario)}`,
   },
 ];
 

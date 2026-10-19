@@ -80,10 +80,10 @@
   <td style="font-family:Arial,Helvetica,sans-serif;padding:6px 0;font-size:14px;color:#64748b;">Subtotal</td>
   <td align="right" style="font-family:Arial,Helvetica,sans-serif;padding:6px 0;font-size:14px;color:#1e293b;">{{ subtotal_price | money }}</td>
 </tr>
-  {%- if discounts_amount > 0 %}
+  {%- if total_discounts > 0 %}
 <tr>
   <td style="font-family:Arial,Helvetica,sans-serif;padding:6px 0;font-size:14px;color:#64748b;">Descuentos</td>
-  <td align="right" style="font-family:Arial,Helvetica,sans-serif;padding:6px 0;font-size:14px;color:#1e293b;">−{{ discounts_amount | money }}</td>
+  <td align="right" style="font-family:Arial,Helvetica,sans-serif;padding:6px 0;font-size:14px;color:#1e293b;">−{{ total_discounts | money }}</td>
 </tr>{% endif %}
   {%- if requires_shipping and delivery_method != 'pick-up' %}
 <tr>
@@ -100,7 +100,8 @@
 {%- assign pagos_ok = transactions | where: 'status', 'success' -%}
 {%- if pagos_ok.size == 0 %}{% assign pagos_ok = transactions %}{% endif -%}
 {%- for t in pagos_ok limit: 1 %}
-<p style="font-family:Arial,Helvetica,sans-serif;margin:12px 0 0;font-size:13px;color:#64748b;">Pagado con {{ t.gateway_display_name | default: t.gateway }}{% if t.payment_details.credit_card_company %} · {{ t.payment_details.credit_card_company }}{% if t.payment_details.credit_card_last_four_digits %} terminada en {{ t.payment_details.credit_card_last_four_digits }}{% endif %}{% endif %}</p>
+<p style="font-family:Arial,Helvetica,sans-serif;margin:12px 0 0;font-size:13px;color:#64748b;">{%- assign medio = t.gateway_display_name | default: t.gateway -%}
+Pagado con {{ medio }}{% if t.payment_details.credit_card_company and t.payment_details.credit_card_company != medio %} · {{ t.payment_details.credit_card_company }}{% endif %}{% if t.payment_details.credit_card_last_four_digits %} terminada en {{ t.payment_details.credit_card_last_four_digits }}{% endif %}</p>
 {%- endfor %}
 {%- if attributes.cuit %}<p style="font-family:Arial,Helvetica,sans-serif;margin:8px 0 0;font-size:13px;color:#64748b;">CUIT/DNI para la factura: {{ attributes.cuit }}</p>{% endif %}
 <p style="font-family:Arial,Helvetica,sans-serif;margin:16px 0 0;font-size:13px;line-height:1.5;color:#64748b;">La factura te llega por separado. Si necesitás cambiar algo del pedido, escribinos cuanto antes por WhatsApp.</p>
