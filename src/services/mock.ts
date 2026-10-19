@@ -1,23 +1,33 @@
 import { slugify } from '../lib/slug';
+import { Category } from '../types';
 import { CommerceService, ProductFilter } from './commerce';
 import { CATEGORIES, PRODUCTS as RAW_PRODUCTS } from './mock-data';
 
 // En Shopify cada producto trae su handle; en el mock lo derivamos del nombre.
 const PRODUCTS = RAW_PRODUCTS.map(p => ({ ...p, handle: p.handle ?? slugify(p.name) }));
 
+// Subcategorías del mock: las que tienen los productos de cada categoría (en Shopify salen del menú anidado).
+const CATEGORIES_WITH_CHILDREN: Category[] = CATEGORIES.map(cat => {
+  const subs = [...new Set(PRODUCTS.filter(p => p.category === cat.name && p.subcategory).map(p => p.subcategory!))];
+  return subs.length === 0 ? cat : {
+    ...cat,
+    children: subs.map(name => ({ id: slugify(name), name, icon: cat.icon, image: cat.image, description: `${name} — ${cat.name}`, parentId: cat.id })),
+  };
+});
+
 /** Provider de desarrollo: datos locales de mock-data.ts. Se usa mientras no haya credenciales de Shopify. */
 export const mockCommerce: CommerceService = {
   name: 'mock',
 
   async getCategories() {
-    return CATEGORIES;
+    return CATEGORIES_WITH_CHILDREN;
   },
 
   async getProducts(filter: ProductFilter = {}) {
     let list = PRODUCTS;
     // En Shopify "Ofertas" es una colección más; en el mock la armamos con los productos con descuento.
     if (filter.category === 'Ofertas') list = list.filter(p => p.discount);
-    else if (filter.category)          list = list.filter(p => p.category === filter.category);
+    else if (filter.category)          list = list.filter(p => p.category === filter.category || p.subcategory === filter.category);
     if (filter.featured) list = list.filter(p => p.isFeatured);
     return filter.limit ? list.slice(0, filter.limit) : list;
   },

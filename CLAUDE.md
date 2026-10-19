@@ -31,6 +31,8 @@ Paljet (ERP)  ──sync (API)──▶  Shopify (productos, precios, stock)
 | `index.ts` | Exporta `commerce`: Shopify si hay `VITE_SHOPIFY_STORE_DOMAIN` + `VITE_SHOPIFY_STOREFRONT_TOKEN`, si no mock. |
 | `mock.ts` + `mock-data.ts` | Datos locales de desarrollo. |
 | `shopify.ts` | Storefront API. Las convenciones de datos (metafields `samaco.*`, tags, menú) están documentadas arriba del archivo. |
+
+**Categorías en Shopify:** colecciones enlazadas en el menú **"Categorías sitio"** (handle `categorias-sitio`; si no existe se usa `main-menu`). Elementos anidados del menú = subcategorías (desplegable del header, `/categorias/:handle`). El tipo de producto de cada producto debe coincidir con su categoría (lo carga la sync de Paljet).
 | `hooks.ts` | `useCategories`, `useProducts`, `useProductsByIds`, `useProductsBySkus`, `useProductSearch` (con cache en memoria). |
 
 Variables en `.env.example`. `npm run lint` (tsc) tiene que pasar limpio.

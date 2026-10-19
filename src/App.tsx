@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { CPS, parseRoute, paths, Route, VIEW_PATHS } from './routes';
 import { slugify } from './lib/slug';
+import { aplanarCategorias } from './lib/categorias';
 import { View, Product, CartItem, Review } from './types';
 import { commerce } from './services';
 import { useCategories, useProductByHandle, useProducts, useProductsByIds, useProductSearch } from './services/hooks';
@@ -69,17 +70,6 @@ const WHY_SAMACO = [
 ];
 
 const BRANDS_LIST = ['FV', 'Roca', 'Eskabe', 'Elizabeth', 'RDAU', 'Genebre', 'Dune', 'Peirano', 'Ferrum', 'Casal'];
-
-const MEGA_MENU: Record<string, string[]> = {
-  'Obra Gruesa':            ['Cemento y Cal', 'Hierro y Acero', 'Bloques y Ladrillos', 'Morteros y Revoques', 'Impermeabilizantes', 'Áridos'],
-  'Pinturas':               ['Látex Interior', 'Látex Exterior', 'Esmaltes', 'Fondos y Selladores', 'Impermeabilizantes Líquidos'],
-  'Instalaciones':          ['Plomería', 'Termotanques', 'Gas', 'Electricidad', 'Calefacción'],
-  'Herramientas':           ['Amoladoras', 'Taladros', 'Sierras y Cierras', 'Fijación y Anclaje', 'Medición', 'Herramientas de Mano'],
-  'Pisos y Revestimientos': ['Porcelanatos', 'Cerámicas', 'Revestimientos de Pared', 'Zócalos', 'Pegamentos y Juntas'],
-  'Grifería':               ['Monocomandos', 'Duchas', 'Grifería de Cocina', 'Accesorios de Baño', 'Repuestos'],
-  'Sanitarios':             ['Inodoros', 'Bidets', 'Lavatorios', 'Vanitorios', 'Bachas de Cocina'],
-  'Ofertas':                ['Ofertas del Mes', 'Liquidación de Stock', 'Productos de Temporada'],
-};
 
 const MOCK_REVIEWS: Record<string, Review[]> = {
   'CM-LN50': [
@@ -627,27 +617,33 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
         {/* Category nav – desktop */}
         <nav className="bg-white border-t border-slate-100 hidden md:block" aria-label="Categorías principales">
           <div className="container mx-auto px-8 max-w-7xl">
-            <ul className="flex items-center overflow-x-auto no-scrollbar">
+            {/* Sin overflow: un contenedor con scroll recorta el desplegable de subcategorías. */}
+            <ul className="flex flex-wrap items-center">
               {categories.map(cat => (
                 <li key={cat.id} className="relative shrink-0" onMouseEnter={() => openMega(cat.name)} onMouseLeave={closeMega}>
                   <button onClick={() => navigateTo('category', undefined, cat.name)}
                     className={`flex items-center gap-1 px-4 py-4 text-[11px] font-bold uppercase tracking-wider border-b-2 transition-all whitespace-nowrap
                       ${cat.name === 'Ofertas' ? 'text-[#E8593C] border-transparent hover:border-[#E8593C]' : 'text-slate-500 border-transparent hover:text-[#1B4F8C] hover:border-[#1B4F8C]'}`}>
                     {cat.name}
-                    {MEGA_MENU[cat.name] && <ChevronDown className="w-3 h-3 opacity-50" />}
+                    {cat.children && <ChevronDown className="w-3 h-3 opacity-50" />}
                   </button>
                   <AnimatePresence>
-                    {megaMenu === cat.name && MEGA_MENU[cat.name] && (
+                    {megaMenu === cat.name && cat.children && (
                       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
                         transition={{ duration: 0.15 }}
                         className="absolute top-full left-0 bg-white shadow-2xl rounded-2xl border border-slate-100 z-50 p-3 w-56"
                         onMouseEnter={() => openMega(cat.name)} onMouseLeave={closeMega}>
-                        {MEGA_MENU[cat.name].map(sub => (
-                          <button key={sub} onClick={() => { navigateTo('category', undefined, cat.name); setMegaMenu(null); }}
+                        {/* Subcategorías: en Shopify son los elementos anidados del menú "Categorías sitio". */}
+                        {cat.children.map(sub => (
+                          <button key={sub.id} onClick={() => { navigateTo('category', undefined, sub.name); setMegaMenu(null); }}
                             className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-slate-600 hover:text-[#1B4F8C] hover:bg-slate-50 rounded-xl transition-colors text-left">
-                            <ChevronRight className="w-3 h-3 opacity-40 shrink-0" />{sub}
+                            <ChevronRight className="w-3 h-3 opacity-40 shrink-0" />{sub.name}
                           </button>
                         ))}
+                        <button onClick={() => { navigateTo('category', undefined, cat.name); setMegaMenu(null); }}
+                          className="w-full mt-1 pt-2.5 border-t border-slate-100 px-3 pb-1 text-xs font-bold text-[#1B4F8C] hover:underline text-left">
+                          Ver todo {cat.name} →
+                        </button>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -1079,8 +1075,9 @@ function CategoryView({ category, ctx }: { category: string; ctx: AppCtx }) {
 
   const { data: categories } = useCategories();
   const { data: categoryProducts, loading } = useProducts({ category: category || undefined });
-  const catData = categories.find(c => c.name === category)
+  const catData = aplanarCategorias(categories).find(c => c.name === category)
     ?? { id: '', name: category || 'Catálogo', icon: '', image: '', description: '' };
+  const parentCat = catData.parentId ? categories.find(c => c.id === catData.parentId) : undefined;
 
   let products = categoryProducts;
   if (selBrands.length) products = products.filter(p => selBrands.includes(p.brand));
@@ -1172,6 +1169,10 @@ function CategoryView({ category, ctx }: { category: string; ctx: AppCtx }) {
         <div className="relative z-10 container mx-auto px-6 md:px-8 max-w-7xl text-white">
           <nav aria-label="Migas de pan" className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest opacity-70 mb-4">
             <button onClick={() => navigateTo('home')} className="hover:opacity-100 transition-opacity">Inicio</button>
+            {parentCat && (
+              <><ChevronRight className="w-3 h-3" />
+              <button onClick={() => navigateTo('category', undefined, parentCat.name)} className="hover:opacity-100 transition-opacity">{parentCat.name}</button></>
+            )}
             <ChevronRight className="w-3 h-3" /><span className="opacity-100">{catData.name}</span>
           </nav>
           <h1 className="text-3xl md:text-5xl font-black tracking-tight">{catData.name}</h1>
@@ -2050,7 +2051,8 @@ export default function App() {
   const navigate = useNavigate();
   const route    = parseRoute(location.pathname);
   const { data: categories, loading: categoriesLoading } = useCategories();
-  const routeCategory = route.view === 'category' && route.handle ? categories.find(c => c.id === route.handle) : undefined;
+  const allCategories = aplanarCategorias(categories);
+  const routeCategory = route.view === 'category' && route.handle ? allCategories.find(c => c.id === route.handle) : undefined;
   const { data: routeProduct, loading: productLoading } = useProductByHandle(route.view === 'product' ? route.handle : undefined);
 
   const [searchQuery,     setSearchQuery]     = useState('');
@@ -2081,7 +2083,7 @@ export default function App() {
     if (view === 'product' && product) {
       path = paths.producto(product.handle ?? slugify(product.name));
     } else if (view === 'category') {
-      path = paths.categoria(category ? (categories.find(c => c.name === category)?.id ?? slugify(category)) : undefined);
+      path = paths.categoria(category ? (allCategories.find(c => c.name === category)?.id ?? slugify(category)) : undefined);
     } else {
       path = VIEW_PATHS[view] ?? paths.home();
     }

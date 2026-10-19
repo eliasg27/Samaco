@@ -1,12 +1,14 @@
 import { Category, Product } from '../types';
 import { CommerceService, ProductFilter } from './commerce';
+import { aplanarCategorias } from '../lib/categorias';
 
 /**
  * Provider Shopify (Storefront API, headless).
  * Shopify recibe catálogo/precios/stock desde Paljet; acá solo leemos y creamos el carrito.
  *
  * Convenciones de datos en Shopify (acordar con quien arme la sync Paljet → Shopify):
- *  - Categorías  = colecciones enlazadas en el menú de navegación `VITE_SHOPIFY_MENU_HANDLE` (default "main-menu").
+ *  - Categorías  = colecciones enlazadas en el menú "Categorías sitio" (handle `categorias-sitio`, configurable con
+ *                  VITE_SHOPIFY_MENU_HANDLE; si no existe se usa "main-menu"). Elementos anidados = subcategorías.
  *                  Ícono opcional en el metafield de colección `samaco.icono`.
  *  - Marca       = vendor.  Categoría = productType.
  *  - Precio      = precio de la 1ª variante; precio de lista = compareAtPrice (si no hay, = precio).
@@ -20,7 +22,7 @@ import { CommerceService, ProductFilter } from './commerce';
 const DOMAIN      = import.meta.env.VITE_SHOPIFY_STORE_DOMAIN as string | undefined;
 const TOKEN       = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN as string | undefined;
 const API_VERSION = (import.meta.env.VITE_SHOPIFY_API_VERSION as string | undefined) ?? '2025-07';
-const MENU_HANDLE = (import.meta.env.VITE_SHOPIFY_MENU_HANDLE as string | undefined) ?? 'main-menu';
+const MENU_HANDLE = (import.meta.env.VITE_SHOPIFY_MENU_HANDLE as string | undefined) ?? 'categorias-sitio';
 
 const CASH_DISCOUNT        = 0.15;
 const DEFAULT_INSTALLMENTS = 9;
@@ -118,39 +120,66 @@ const MAX_PAGE = 250;
 
 let categoriesPromise: Promise<Category[]> | null = null;
 
-function getCategories(): Promise<Category[]> {
-  categoriesPromise ??= storefront<{
-    menu: { items: { title: string; resource: {
-      __typename: string; handle?: string; title?: string; description?: string;
-      image?: { url: string } | null; icon?: { value: string } | null;
-    } | null }[] } | null;
-  }>(/* GraphQL */ `
-    query Categories($menu: String!) {
-      menu(handle: $menu) {
-        items {
-          title
-          resource {
-            __typename
-            ... on Collection {
-              handle title description
-              image { url }
-              icon: metafield(namespace: "samaco", key: "icono") { value }
-            }
-          }
-        }
+interface MenuItem {
+  title: string;
+  resource: {
+    __typename: string; handle?: string; description?: string;
+    image?: { url: string } | null; icon?: { value: string } | null;
+  } | null;
+  items?: MenuItem[];
+}
+
+const COLLECTION_FIELDS = /* GraphQL */ `
+  title
+  resource {
+    __typename
+    ... on Collection {
+      handle description
+      image { url }
+      icon: metafield(namespace: "samaco", key: "icono") { value }
+    }
+  }
+`;
+
+const CATEGORIES_QUERY = /* GraphQL */ `
+  query Categories($menu: String!) {
+    menu(handle: $menu) {
+      items {
+        ${COLLECTION_FIELDS}
+        items { ${COLLECTION_FIELDS} }
       }
     }
-  `, { menu: MENU_HANDLE }).then(data =>
-    (data.menu?.items ?? [])
-      .filter(i => i.resource?.__typename === 'Collection' && i.resource.handle)
-      .map(i => ({
-        id: i.resource!.handle!,
-        name: i.title,
-        icon: i.resource!.icon?.value ?? '📦',
-        image: i.resource!.image?.url ?? '',
-        description: i.resource!.description ?? '',
-      })),
-  ).catch(err => { categoriesPromise = null; throw err; });
+  }
+`;
+
+/** Solo los elementos del menú que apuntan a una colección se vuelven categorías. */
+function toCategory(item: MenuItem, parentId?: string): Category | null {
+  const r = item.resource;
+  if (r?.__typename !== 'Collection' || !r.handle) return null;
+  const cat: Category = {
+    id: r.handle,
+    name: item.title,
+    icon: r.icon?.value ?? '📦',
+    image: r.image?.url ?? '',
+    description: r.description ?? '',
+    parentId,
+  };
+  const children = (item.items ?? []).map(i => toCategory(i, cat.id)).filter((c): c is Category => c !== null);
+  if (children.length) cat.children = children;
+  return cat;
+}
+
+async function fetchMenu(handle: string) {
+  const data = await storefront<{ menu: { items: MenuItem[] } | null }>(CATEGORIES_QUERY, { menu: handle });
+  return data.menu;
+}
+
+function getCategories(): Promise<Category[]> {
+  categoriesPromise ??= (async () => {
+    // Menú propio del sitio; si todavía no existe, el "Menú principal" del tema.
+    const menu = (await fetchMenu(MENU_HANDLE)) ?? (MENU_HANDLE !== 'main-menu' ? await fetchMenu('main-menu') : null);
+    return (menu?.items ?? []).map(i => toCategory(i)).filter((c): c is Category => c !== null);
+  })().catch(err => { categoriesPromise = null; throw err; });
   return categoriesPromise;
 }
 
@@ -176,7 +205,7 @@ export const shopifyCommerce: CommerceService = {
     const tagQuery = filter.featured ? 'tag:destacado' : null;
 
     if (filter.category) {
-      const cat = (await getCategories()).find(c => c.name === filter.category);
+      const cat = aplanarCategorias(await getCategories()).find(c => c.name === filter.category);
       if (!cat) return [];
       const data = await storefront<{ collection: { products: { nodes: ShopifyProduct[] } } | null }>(/* GraphQL */ `
         ${PRODUCT_FIELDS}

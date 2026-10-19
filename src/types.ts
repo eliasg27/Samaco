@@ -37,6 +37,10 @@ export interface Category {
   icon: string;
   image: string;
   description: string;
+  /** Subcategorías (en Shopify: elementos anidados del menú del sitio). */
+  children?: Category[];
+  /** id de la categoría padre, solo en subcategorías. */
+  parentId?: string;
 }
 
 export interface CartItem {
