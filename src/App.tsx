@@ -918,8 +918,11 @@ function HomeView({ ctx }: { ctx: AppCtx }) {
               onClick={() => navigateTo('category', undefined, cat.name)}
               className="relative h-40 md:h-48 rounded-2xl overflow-hidden group text-left"
               aria-label={`Ver ${cat.name}`}>
-              <img src={cat.image} alt={cat.name} loading="lazy" referrerPolicy="no-referrer"
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+              {cat.image
+                ? <img src={cat.image} alt="" loading="lazy" referrerPolicy="no-referrer"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                : /* Colección sin imagen en Shopify: fondo de marca en lugar de una imagen rota */
+                  <div aria-hidden className="absolute inset-0 bg-gradient-to-br from-[#1B4F8C] to-[#0d2a4d]" />}
               <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
               <div className="absolute bottom-0 p-3 md:p-4">
                 <span className="text-xl mb-0.5 block">{cat.icon}</span>
