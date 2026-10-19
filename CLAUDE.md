@@ -73,6 +73,10 @@ Club para arquitectos, ingenieros, desarrolladores inmobiliarios, constructores 
 - Datos de ejemplo en `mock-data.ts` (eventos, estudios, descuentos, asesores en `ui.tsx`): reemplazar por los reales.
 - El directorio de profesionales muestra solo a quienes aceptaron aparecer (opt-in).
 
+## Mails y notificaciones (`emails/`)
+
+Plantillas de Shopify (compra, retiro, envío, cancelación, reembolso, carrito abandonado, aviso interno de pedido) y del Círculo de Profesionales, con un diseño común. Fuente en `emails/src/`, se generan con `node emails/build.mjs`; cómo cargarlas en Shopify en `emails/README.md`. Los del Círculo todavía no se envían (falta backend de altas).
+
 ## Reglas de trabajo
 
 - Los componentes **nunca** importan datos directo (`mock-data.ts`) ni un provider: usan los hooks o `commerce`. Si falta una operación, se agrega al contrato y a ambos providers.

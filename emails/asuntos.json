@@ -1,0 +1,116 @@
+{
+  "shopify": [
+    {
+      "archivo": "confirmacion-de-pedido.liquid",
+      "plantillaEnShopify": "Confirmación del pedido",
+      "asunto": "Recibimos tu pedido {{ order_name }} 🧱"
+    },
+    {
+      "archivo": "listo-para-retirar.liquid",
+      "plantillaEnShopify": "Listo para retiro en tienda (retiro local)",
+      "asunto": "Tu pedido {{ order_name }} está listo para retirar"
+    },
+    {
+      "archivo": "confirmacion-de-envio.liquid",
+      "plantillaEnShopify": "Confirmación de envío",
+      "asunto": "Tu pedido {{ order_name }} está en camino 🚚"
+    },
+    {
+      "archivo": "pedido-en-reparto.liquid",
+      "plantillaEnShopify": "Pedido en reparto",
+      "asunto": "Hoy llega tu pedido {{ order_name }}"
+    },
+    {
+      "archivo": "pedido-entregado.liquid",
+      "plantillaEnShopify": "Pedido entregado",
+      "asunto": "Entregamos tu pedido {{ order_name }}"
+    },
+    {
+      "archivo": "pedido-cancelado.liquid",
+      "plantillaEnShopify": "Pedido cancelado",
+      "asunto": "Cancelamos tu pedido {{ order_name }}"
+    },
+    {
+      "archivo": "reembolso.liquid",
+      "plantillaEnShopify": "Reembolso",
+      "asunto": "Te reintegramos {{ amount | money }} del pedido {{ order_name }}"
+    },
+    {
+      "archivo": "checkout-abandonado.liquid",
+      "plantillaEnShopify": "Pago abandonado (checkout abandonado)",
+      "asunto": "¿Te quedó algo pendiente? Tu carrito te espera"
+    },
+    {
+      "archivo": "personal-nuevo-pedido.liquid",
+      "plantillaEnShopify": "Nuevo pedido (notificaciones para el personal)",
+      "asunto": "[Pedido web] {{ order_name }} · {{ total_price | money }} · {% if delivery_method == \"pick-up\" %}Retiro {{ shipping_method.title }}{% else %}Envío{% endif %}"
+    }
+  ],
+  "cps": [
+    {
+      "archivo": "cps-solicitud-recibida.html",
+      "para": "Profesional, al enviar el formulario de alta",
+      "asunto": "Recibimos tu solicitud al Círculo de Profesionales",
+      "variables": [
+        "nombre",
+        "sede",
+        "sitio"
+      ]
+    },
+    {
+      "archivo": "cps-membresia-aprobada.html",
+      "para": "Profesional, cuando Samaco aprueba la solicitud",
+      "asunto": "¡Bienvenido/a al Círculo de Profesionales Samaco!",
+      "variables": [
+        "nombre",
+        "numeroSocio",
+        "sede",
+        "asesorNombre",
+        "asesorWhatsapp",
+        "sitio"
+      ]
+    },
+    {
+      "archivo": "cps-solicitud-no-aprobada.html",
+      "para": "Profesional, si Samaco rechaza la solicitud",
+      "asunto": "Sobre tu solicitud al Círculo de Profesionales",
+      "variables": [
+        "nombre",
+        "asesorWhatsapp"
+      ]
+    },
+    {
+      "archivo": "cps-inscripcion-evento.html",
+      "para": "Profesional, al inscribirse a un evento",
+      "asunto": "Te inscribiste: {{eventoTitulo}}",
+      "variables": [
+        "nombre",
+        "eventoTitulo",
+        "eventoFecha",
+        "eventoLugar",
+        "sede",
+        "eventoUrl"
+      ]
+    },
+    {
+      "archivo": "interno-cps-nueva-solicitud.html",
+      "para": "Asesor/a de la sede elegida (aviso interno)",
+      "asunto": "[Círculo] Nueva solicitud: {{nombre}} {{apellido}} · {{profesion}}",
+      "variables": [
+        "nombre",
+        "apellido",
+        "profesion",
+        "email",
+        "telefono",
+        "matricula",
+        "estudio",
+        "zona",
+        "sede",
+        "comprasEnSamaco",
+        "comoNosConociste",
+        "fecha",
+        "urlAdmin"
+      ]
+    }
+  ]
+}
