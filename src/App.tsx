@@ -817,6 +817,10 @@ function HomeView({ ctx }: { ctx: AppCtx }) {
   const [slide, setSlide] = useState(0);
   const { data: categories } = useCategories();
   const { data: featured, loading: featuredLoading } = useProducts({ featured: true, limit: 8 });
+  // Si en Shopify todavía no hay productos con la etiqueta "destacado", mostramos los últimos cargados.
+  const { data: latest, loading: latestLoading } = useProducts({ limit: 8 });
+  const homeProducts = featured.length > 0 ? featured : latest;
+  const homeLoading  = featuredLoading || (featured.length === 0 && latestLoading);
 
   useEffect(() => {
     const t = setInterval(() => setSlide(s => (s + 1) % HERO_SLIDES.length), 5000);
@@ -908,7 +912,8 @@ function HomeView({ ctx }: { ctx: AppCtx }) {
         </div>
       </section>
 
-      {/* ── CATEGORIES GRID ── */}
+      {/* ── CATEGORIES GRID ── (se oculta si la tienda todavía no tiene colecciones en el menú) */}
+      {categories.length > 0 && (
       <section className="container mx-auto px-4 md:px-8 max-w-7xl py-14">
         <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight mb-8">Explorá por categoría</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
@@ -928,20 +933,24 @@ function HomeView({ ctx }: { ctx: AppCtx }) {
           ))}
         </div>
       </section>
+      )}
 
       {/* ── FEATURED PRODUCTS ── */}
+      {(homeLoading || homeProducts.length > 0) && (
       <section className="bg-white py-14">
         <div className="container mx-auto px-4 md:px-8 max-w-7xl">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">Productos destacados</h2>
-            <button onClick={() => navigateTo('category', undefined, 'Grifería')}
+            <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight">
+              {featured.length > 0 ? 'Productos destacados' : 'Nuestros productos'}
+            </h2>
+            <button onClick={() => navigateTo('category')}
               className="flex items-center gap-1.5 text-sm font-bold text-[#1B4F8C] hover:text-[#E8593C] transition-colors">
               Ver todo <ArrowRight className="w-4 h-4" />
             </button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {featuredLoading && <ProductGridSkeleton count={8} />}
-            {featured.map(p => (
+            {homeLoading && <ProductGridSkeleton count={8} />}
+            {homeProducts.map(p => (
               <ProductCard key={p.id} product={p}
                 onClick={() => navigateTo('product', p)} onAddToCart={addToCart}
                 isFavorite={favorites.has(p.id)} onToggleFavorite={toggleFavorite}
@@ -950,6 +959,7 @@ function HomeView({ ctx }: { ctx: AppCtx }) {
           </div>
         </div>
       </section>
+      )}
 
       {/* ── CÍRCULO DE PROFESIONALES ── */}
       <section className="bg-[#0d2a4d] text-white">
