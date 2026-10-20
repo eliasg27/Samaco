@@ -8,8 +8,9 @@ import { Beneficio, Descuento, Estudio, Evento, Profesional, RegistroInput, Resu
  *                   (o `cps-rechazado`) desde el admin. Datos en metafields `cps.*` (ver api/_lib/cps.ts).
  *                   El alta y el perfil pasan por las funciones de Vercel en api/cps/ (Admin API).
  *  - Ingreso      = login sin contraseña de Shopify (Customer Account API: código por email).
- *  - Descuentos   = descuentos automáticos de Shopify con elegibilidad por segmento de clientes (tag `profesional`),
- *                   así el checkout de Shopify los aplica solo.
+ *  - Descuentos   = descuentos automáticos de Shopify con elegibilidad por el segmento de clientes
+ *                   **"Círculo – miembros"** (tag `cps-aprobado`), así el checkout de Shopify los aplica solo.
+ *                   Ojo: elegir ese segmento al crear cada descuento; con otro tag no le llega a nadie.
  *  - Eventos / Estudios / Beneficios = metaobjects de Shopify (`evento`, `estudio`, `beneficio`).
  */
 export interface ProfesionalesService {

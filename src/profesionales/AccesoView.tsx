@@ -207,7 +207,7 @@ function FormRegistro({ ir }: { ir: (v: View) => void }) {
   const [errores, setErrores] = useState<ReturnType<typeof validar>>({});
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
-  const [enviada, setEnviada] = useState<{ yaEsMiembro?: boolean } | null>(null);
+  const [enviada, setEnviada] = useState(false);
   const { ingresar } = useProfesional();
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setF(prev => ({ ...prev, [k]: v }));
@@ -239,18 +239,17 @@ function FormRegistro({ ir }: { ir: (v: View) => void }) {
     setEnviando(false);
     if ('error' in r) setErrorGeneral(r.error);
     else if (r.profesional) ir('panel'); // modo demo: queda logueado
-    else { setEnviada({ yaEsMiembro: r.yaEsMiembro }); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    else { setEnviada(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }
   };
 
   if (enviada) {
     return (
       <div className="text-center py-6">
         <CheckCircle2 className="w-14 h-14 text-emerald-500 mx-auto mb-4" />
-        <h2 className="text-xl font-black text-slate-800 mb-2">{enviada.yaEsMiembro ? '¡Ya sos parte del Círculo!' : '¡Recibimos tu solicitud!'}</h2>
+        <h2 className="text-xl font-black text-slate-800 mb-2">¡Recibimos tu solicitud!</h2>
         <p className="text-sm text-slate-500 leading-relaxed max-w-sm mx-auto mb-6">
-          {enviada.yaEsMiembro
-            ? 'Tu membresía ya está activa. Ingresá con tu email para ver tu panel.'
-            : 'El equipo de Samaco va a revisar tus datos y te contacta. Mientras tanto podés entrar a tu panel con tu email: te mandamos un código de acceso.'}
+          El equipo de Samaco va a revisar tus datos y te contacta. Mientras tanto podés entrar a tu panel con tu email:
+          te mandamos un código de acceso. Si ya tenías una solicitud, entrá igual y vas a ver su estado.
         </p>
         <button onClick={() => ingresar(f.email)}
           className="px-6 py-3.5 bg-[#1B4F8C] hover:bg-[#163f70] text-white font-black rounded-xl text-sm transition-colors">

@@ -91,8 +91,8 @@ export const shopifyProfesionales: ProfesionalesService = {
       const res = await fetch('/api/cps/registro', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input),
       });
-      const j = await res.json().catch(() => ({})) as { ok?: boolean; error?: string; yaEsMiembro?: boolean };
-      return j.ok ? { ok: true, yaEsMiembro: j.yaEsMiembro } : { ok: false, error: j.error ?? 'No pudimos enviar tu solicitud.' };
+      const j = await res.json().catch(() => ({})) as { ok?: boolean; error?: string };
+      return j.ok ? { ok: true } : { ok: false, error: j.error ?? 'No pudimos enviar tu solicitud.' };
     } catch {
       return { ok: false, error: 'No pudimos conectarnos. Revisá tu conexión y probá de nuevo.' };
     }

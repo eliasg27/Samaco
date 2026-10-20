@@ -73,6 +73,8 @@ Club para arquitectos, ingenieros, desarrolladores inmobiliarios, constructores 
   - Alta → `POST /api/cps/registro` (función de Vercel, Admin API) crea el **cliente de Shopify** con tags `cps` + `cps-pendiente` y metafields `cps.*` (textos legibles; mapeo en `api/_lib/cps.ts`).
   - Samaco revisa en el admin → Clientes → segmentos **"Círculo – pendientes" / "Círculo – miembros"** y aprueba cambiando el tag a `cps-aprobado` (o `cps-rechazado`).
   - Ingreso **sin contraseña**: login de Shopify con código por email (Customer Account API, OAuth PKCE). Callback `/CPS/acceso` (registrado en Headless → Customer Account API). `GET/PATCH /api/cps/perfil` valida el token contra Shopify.
+  - **Descuentos para miembros:** en Shopify, descuento automático con elegibilidad = segmento **"Círculo – miembros"** (tag `cps-aprobado`). Cualquier otro tag no matchea a nadie.
+  - El directorio (`/api/cps/directorio`) solo responde a miembros con `cps-aprobado`. El alta tiene campo trampa anti-bots y límite de pedidos por IP.
   - Eventos, descuentos, beneficios y estudios siguen siendo datos de ejemplo.
   - `scripts/cps-setup.mjs` crea las definiciones de metafields y los segmentos (idempotente). En local, `npm run dev` sirve `api/` con un plugin de Vite.
 - Datos de ejemplo en `mock-data.ts` (eventos, estudios, descuentos, asesores en `ui.tsx`): reemplazar por los reales.
@@ -80,7 +82,7 @@ Club para arquitectos, ingenieros, desarrolladores inmobiliarios, constructores 
 
 ## Mails y notificaciones (`emails/`)
 
-Plantillas de Shopify (compra, retiro, envío, cancelación, reembolso, carrito abandonado, aviso interno de pedido) y del Círculo de Profesionales, con un diseño común. Fuente en `emails/src/`, se generan con `node emails/build.mjs`; cómo cargarlas en Shopify en `emails/README.md`. Los del Círculo todavía no se envían (falta backend de altas).
+Plantillas de Shopify (compra, retiro, envío, cancelación, reembolso, carrito abandonado, aviso interno de pedido) y del Círculo de Profesionales, con un diseño común. Fuente en `emails/src/`, se generan con `node emails/build.mjs`; cómo cargarlas en Shopify en `emails/README.md`. Los del Círculo todavía no se envían (las altas ya llegan a Shopify; falta el remitente con dominio de Samaco para mandarlos).
 
 ## Reglas de trabajo
 

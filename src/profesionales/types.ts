@@ -161,7 +161,7 @@ export type ResultadoAuth =
 
 /** Alta: en demo deja la sesión iniciada (trae el profesional); con Shopify queda pendiente y después se ingresa con código. */
 export type ResultadoRegistro =
-  | { ok: true; profesional?: Profesional; yaEsMiembro?: boolean }
+  | { ok: true; profesional?: Profesional }
   | { ok: false; error: string };
 
 /** Ingreso: en demo es inmediato; con Shopify el navegador se va a la página de Shopify que manda el código. */
