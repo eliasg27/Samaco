@@ -510,6 +510,29 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
 
           {/* Icons */}
           <div className="flex items-center gap-1 ml-auto md:ml-0">
+            {/* Círculo de Profesionales: landing si no entró, panel si ya es miembro */}
+            <div className="relative group">
+              <button onClick={() => navigateTo(profesional ? 'panel' : 'profesionales')}
+                aria-label={profesional
+                  ? `Círculo de Profesionales: ${profesional.estado === 'aprobado' ? 'membresía activa' : 'solicitud en revisión'}`
+                  : 'Círculo de Profesionales'}
+                className="p-1.5 hover:bg-slate-50 rounded-xl transition-colors relative">
+                <img src={CPS_LOGO.isotipo.src} width={CPS_LOGO.isotipo.w} height={CPS_LOGO.isotipo.h} alt="" aria-hidden className="w-8 h-8" />
+                {profesional?.estado === 'aprobado' && (
+                  <span className="absolute top-0.5 right-0.5 bg-emerald-500 text-white w-3.5 h-3.5 rounded-full flex items-center justify-center ring-2 ring-white">
+                    <Check className="w-2.5 h-2.5" strokeWidth={3.5} />
+                  </span>
+                )}
+                {profesional && profesional.estado !== 'aprobado' && (
+                  <span className="absolute top-1 right-1 bg-[#E8593C] w-2.5 h-2.5 rounded-full ring-2 ring-white" />
+                )}
+              </button>
+              <span role="tooltip"
+                className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-full mt-2 whitespace-nowrap rounded-lg bg-slate-800 px-2.5 py-1 text-[11px] font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 hidden md:block z-50">
+                Círculo de Profesionales
+              </span>
+            </div>
+
             {/* Account dropdown */}
             <div className="relative hidden sm:block">
               <button onClick={() => setAccountOpen(v => !v)} aria-label="Mi cuenta"

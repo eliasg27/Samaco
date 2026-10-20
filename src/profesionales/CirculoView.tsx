@@ -74,35 +74,6 @@ export function CirculoView({ ir }: { ir: (v: View) => void }) {
         </div>
       </section>
 
-      {/* ── BENEFICIOS ── */}
-      <section className="container mx-auto px-4 md:px-8 max-w-7xl py-16">
-        <SeccionTitulo kicker="Por qué ser parte" titulo="Beneficios para miembros" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {beneficios.map(b => <BeneficioCard key={b.id} beneficio={b} />)}
-        </div>
-      </section>
-
-      {/* ── CÓMO FORMAR PARTE ── */}
-      <section className="bg-white border-y border-slate-100 py-16">
-        <div className="container mx-auto px-4 md:px-8 max-w-7xl">
-          <SeccionTitulo kicker="Alta en 3 pasos" titulo="Cómo formar parte" />
-          <ol className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {([
-              [ClipboardList, 'Completá el formulario',     'Tus datos, tu especialidad y tu zona de trabajo. Lleva un par de minutos.'],
-              [ShieldCheck,   'Revisamos tu solicitud',     'El equipo de Samaco confirma tu alta y te contacta. Mientras tanto ya podés ver tu panel.'],
-              [BadgeCheck,    'Activamos tus beneficios',    'Se habilitan los precios profesionales, los eventos exclusivos y tu credencial digital.'],
-            ] as const).map(([Icon, titulo, texto], i) => (
-              <li key={titulo} className="relative bg-slate-50 rounded-2xl p-6 border border-slate-100">
-                <span className="absolute top-5 right-5 text-4xl font-black text-slate-200">{i + 1}</span>
-                <Icon className="w-7 h-7 text-[#E8593C] mb-4" />
-                <h3 className="font-black text-slate-800 mb-1.5">{titulo}</h3>
-                <p className="text-sm text-slate-500 leading-relaxed">{texto}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
       {/* ── EVENTOS ── */}
       <section className="container mx-auto px-4 md:px-8 max-w-7xl py-16">
         <SeccionTitulo kicker="Agenda" titulo="Próximos eventos">
@@ -123,6 +94,37 @@ export function CirculoView({ ir }: { ir: (v: View) => void }) {
               ))}
             </div>
           )}
+      </section>
+
+      {/* ── BENEFICIOS ── */}
+      <section className="bg-white border-y border-slate-100 py-16">
+        <div className="container mx-auto px-4 md:px-8 max-w-7xl">
+          <SeccionTitulo kicker="Por qué ser parte" titulo="Beneficios para miembros" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {beneficios.map(b => <BeneficioCard key={b.id} beneficio={b} />)}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CÓMO FORMAR PARTE ── */}
+      <section className="py-16">
+        <div className="container mx-auto px-4 md:px-8 max-w-7xl">
+          <SeccionTitulo kicker="Alta en 3 pasos" titulo="Cómo formar parte" />
+          <ol className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {([
+              [ClipboardList, 'Completá el formulario',     'Tus datos, tu especialidad y tu zona de trabajo. Lleva un par de minutos.'],
+              [ShieldCheck,   'Revisamos tu solicitud',     'El equipo de Samaco confirma tu alta y te contacta. Mientras tanto ya podés ver tu panel.'],
+              [BadgeCheck,    'Activamos tus beneficios',    'Se habilitan los precios profesionales, los eventos exclusivos y tu credencial digital.'],
+            ] as const).map(([Icon, titulo, texto], i) => (
+              <li key={titulo} className="relative bg-white rounded-2xl p-6 border border-slate-100">
+                <span className="absolute top-5 right-5 text-4xl font-black text-slate-200">{i + 1}</span>
+                <Icon className="w-7 h-7 text-[#E8593C] mb-4" />
+                <h3 className="font-black text-slate-800 mb-1.5">{titulo}</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">{texto}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
       </section>
 
       {/* ── ESTUDIOS ── */}

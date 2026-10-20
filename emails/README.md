@@ -37,6 +37,8 @@ Lo que cubren:
 
 **Carrito abandonado:** Shopify ya no usa la plantilla "Pago abandonado" de Notificaciones: ahora es una **automatización de marketing** (Marketing → Automatizaciones, con el editor de Shopify Email, que no acepta HTML propio). `checkout-abandonado.liquid` queda como referencia de textos. Para activarlo: armar la automatización "Pago abandonado" con el logo, el color y estos textos, enviarla **10 h** después del abandono (y opcionalmente un segundo mail a las 48 h). Revisar en la automatización a quién se envía (solo suscriptores o todos los que dejaron su mail).
 
+**Estado (19/10/2026):** automatización "Recupera el pedido abandonado" armada en **borrador** (logo, colores de Samaco, asunto y vista previa nuevos, enviar a todos los clientes). **No se puede activar** hasta tener un remitente con dominio propio verificado: Shopify no acepta Gmail (`ecommercesamaco@gmail.com`) como remitente de Messaging. Pendiente: casilla de Samaco (p. ej. `ventas@samacoonline.com.ar`) + registros DNS del dominio.
+
 **Mails que no tocamos:** cuentas de cliente, tarjetas de regalo y POS siguen con la plantilla de Shopify. Antes de lanzar hay que cargar el logo y el color `#1B4F8C` en **Personalizar plantillas de email**.
 
 ## 2. Avisos internos de pedidos
