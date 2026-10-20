@@ -1,10 +1,10 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
-import { Eye, EyeOff, Info } from 'lucide-react';
+import { CheckCircle2, Info, Loader2, Mail } from 'lucide-react';
 import { CPS_LOGO } from './ui';
 import { View } from '../types';
 import { useProfesional } from './context';
-import { esModoDemo } from './mock';
+import { esModoDemo } from './index';
 import { DEMO_CUENTA } from './mock-data';
 import {
   Colegio, COLEGIOS, COMO_NOS_CONOCISTE, ComoNosConociste, COMPRAS_EN_SAMACO, ComprasEnSamaco,
@@ -38,16 +38,16 @@ interface FormState {
   matricula: string;
   colegio: Colegio;
   estudio: string;
-  password: string;
-  confirmar: string;
+  /** Campo trampa para bots (oculto). */
+  sitioWeb: string;
   apareceEnDirectorio: boolean;
   terminos: boolean;
 }
 
 const VACIO: FormState = {
   nombreCompleto: '', profesion: '', telefono: '', email: '', zona: '', sede: 'mendoza',
-  comprasEnSamaco: '', comoNosConociste: '', matricula: '', colegio: 'camza', estudio: '',
-  password: '', confirmar: '', apareceEnDirectorio: true, terminos: false,
+  comprasEnSamaco: '', comoNosConociste: '', matricula: '', colegio: 'camza', estudio: '', sitioWeb: '',
+  apareceEnDirectorio: true, terminos: false,
 };
 
 /** En el formulario original la especialidad "Otro" se muestra así (en el resto del sitio es "Profesional"). */
@@ -65,8 +65,6 @@ function validar(f: FormState) {
   if (!f.zona) e.zona = 'Elegí tu zona de trabajo.';
   if (!f.comprasEnSamaco) e.comprasEnSamaco = 'Elegí una opción.';
   if (f.matricula.trim() && !/^[A-Za-z0-9.\-\s/]{3,15}$/.test(f.matricula.trim())) e.matricula = 'Revisá el número de matrícula (3 a 15 caracteres).';
-  if (f.password.length < 8) e.password = 'Mínimo 8 caracteres.';
-  if (f.confirmar !== f.password) e.confirmar = 'Las contraseñas no coinciden.';
   if (!f.terminos) e.terminos = 'Tenés que aceptar las condiciones del Círculo.';
   return e;
 }
@@ -135,42 +133,68 @@ export function AccesoView({ modo, ir }: { modo: 'ingresar' | 'registro'; ir: (v
 }
 
 function FormIngreso({ ir }: { ir: (v: View) => void }) {
-  const { ingresar } = useProfesional();
+  const { ingresar, completarIngreso } = useProfesional();
+  const params = new URLSearchParams(location.search);
+  const volviendoDeShopify = location.pathname.toLowerCase().endsWith('/acceso') && (params.has('code') || params.has('error'));
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [verPass, setVerPass] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [enviando, setEnviando] = useState(false);
+  const [noRegistrado, setNoRegistrado] = useState(false);
+  const [enviando, setEnviando] = useState(volviendoDeShopify);
+  const procesado = useRef(false);
+
+  // Vuelta del login de Shopify: se canjea el código por la sesión y se abre el panel.
+  useEffect(() => {
+    if (!volviendoDeShopify || procesado.current) return;
+    procesado.current = true;
+    history.replaceState(null, '', '/CPS/ingresar');
+    completarIngreso(params).then(r => {
+      if (!('error' in r)) return ir('panel');
+      setEnviando(false);
+      setError(r.error);
+      setNoRegistrado(r.codigo === 'no-registrado');
+      if (r.email) setEmail(r.email);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setEnviando(true); setError(null);
-    const r = await ingresar(email, password);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { setError('Ingresá un email válido.'); return; }
+    setEnviando(true); setError(null); setNoRegistrado(false);
+    const r = await ingresar(email);
+    if ('redirigiendo' in r) return; // el navegador se va a Shopify
     setEnviando(false);
-    if ('error' in r) setError(r.error); else ir('panel');
+    if ('error' in r) { setError(r.error); setNoRegistrado(r.codigo === 'no-registrado'); }
+    else ir('panel');
   };
+
+  if (volviendoDeShopify && enviando) {
+    return <p className="flex items-center justify-center gap-2 py-12 text-sm font-semibold text-slate-500"><Loader2 className="w-5 h-5 animate-spin" />Ingresando a tu panel…</p>;
+  }
 
   return (
     <form onSubmit={onSubmit} className="space-y-4" noValidate>
+      <p className="flex gap-2 text-sm text-slate-600 leading-relaxed">
+        <Mail className="w-5 h-5 shrink-0 text-[#1B4F8C]" />
+        <span>Ingresá con el email de tu solicitud. Te mandamos un <strong>código de acceso</strong>: no necesitás contraseña.</span>
+      </p>
       <Campo label="Email"><input type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} className={inputCls} /></Campo>
-      <Campo label="Contraseña">
-        <div className="relative">
-          <input type={verPass ? 'text' : 'password'} autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} className={`${inputCls} pr-11`} />
-          <button type="button" onClick={() => setVerPass(v => !v)} aria-label={verPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-            {verPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-          </button>
+      {error && (
+        <div role="alert" className="text-sm font-semibold text-red-600">
+          {error}
+          {noRegistrado && (
+            <button type="button" onClick={() => ir('pro-registro')} className="block mt-1 text-[#E8593C] underline underline-offset-2">Completar mi solicitud al Círculo</button>
+          )}
         </div>
-      </Campo>
-      {error && <p role="alert" className="text-sm font-semibold text-red-600">{error}</p>}
+      )}
       <button type="submit" disabled={enviando}
         className="w-full py-3.5 bg-[#1B4F8C] hover:bg-[#163f70] disabled:bg-slate-300 text-white font-black rounded-xl text-sm transition-colors">
-        {enviando ? 'Ingresando…' : 'Ingresar al panel'}
+        {enviando ? 'Un momento…' : esModoDemo ? 'Ingresar al panel' : 'Recibir código de acceso'}
       </button>
       {esModoDemo && (
         <p className="flex gap-2 text-[11px] text-slate-500 bg-slate-50 border border-slate-100 rounded-xl p-3">
           <Info className="w-4 h-4 shrink-0 text-[#1B4F8C]" />
-          <span>Modo demo: podés probar con <strong>{DEMO_CUENTA.email}</strong> / <strong>{DEMO_CUENTA.password}</strong> (cuenta aprobada).</span>
+          <span>Modo demo: podés probar con <strong>{DEMO_CUENTA.email}</strong> (cuenta aprobada).</span>
         </p>
       )}
     </form>
@@ -183,6 +207,8 @@ function FormRegistro({ ir }: { ir: (v: View) => void }) {
   const [errores, setErrores] = useState<ReturnType<typeof validar>>({});
   const [errorGeneral, setErrorGeneral] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+  const [enviada, setEnviada] = useState<{ yaEsMiembro?: boolean } | null>(null);
+  const { ingresar } = useProfesional();
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setF(prev => ({ ...prev, [k]: v }));
   // Marca el bloque con error para poder llevar el scroll al primero.
@@ -200,7 +226,7 @@ function FormRegistro({ ir }: { ir: (v: View) => void }) {
     const [nombre, ...resto] = f.nombreCompleto.trim().split(/\s+/);
     const matricula = f.matricula.trim();
     const input: RegistroInput = {
-      nombre, apellido: resto.join(' '), email: f.email, telefono: f.telefono, password: f.password,
+      nombre, apellido: resto.join(' '), email: f.email, telefono: f.telefono,
       profesion: f.profesion as Profesion, zona: f.zona as Zona,
       // Las zonas del formulario son de Mendoza; con "Otros" la persona elige su sede.
       sede: f.zona === 'otros' ? f.sede : 'mendoza',
@@ -209,10 +235,30 @@ function FormRegistro({ ir }: { ir: (v: View) => void }) {
       matricula: matricula || undefined, colegio: matricula ? f.colegio : undefined,
       estudio: f.estudio, apareceEnDirectorio: f.apareceEnDirectorio,
     };
-    const r = await registrar(input);
+    const r = await registrar({ ...input, sitio_web: f.sitioWeb } as RegistroInput);
     setEnviando(false);
-    if ('error' in r) setErrorGeneral(r.error); else ir('panel');
+    if ('error' in r) setErrorGeneral(r.error);
+    else if (r.profesional) ir('panel'); // modo demo: queda logueado
+    else { setEnviada({ yaEsMiembro: r.yaEsMiembro }); window.scrollTo({ top: 0, behavior: 'smooth' }); }
   };
+
+  if (enviada) {
+    return (
+      <div className="text-center py-6">
+        <CheckCircle2 className="w-14 h-14 text-emerald-500 mx-auto mb-4" />
+        <h2 className="text-xl font-black text-slate-800 mb-2">{enviada.yaEsMiembro ? '¡Ya sos parte del Círculo!' : '¡Recibimos tu solicitud!'}</h2>
+        <p className="text-sm text-slate-500 leading-relaxed max-w-sm mx-auto mb-6">
+          {enviada.yaEsMiembro
+            ? 'Tu membresía ya está activa. Ingresá con tu email para ver tu panel.'
+            : 'El equipo de Samaco va a revisar tus datos y te contacta. Mientras tanto podés entrar a tu panel con tu email: te mandamos un código de acceso.'}
+        </p>
+        <button onClick={() => ingresar(f.email)}
+          className="px-6 py-3.5 bg-[#1B4F8C] hover:bg-[#163f70] text-white font-black rounded-xl text-sm transition-colors">
+          Entrar a mi panel
+        </button>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={onSubmit} className="space-y-6" noValidate>
@@ -281,19 +327,9 @@ function FormRegistro({ ir }: { ir: (v: View) => void }) {
         </div>
       </details>
 
-      <fieldset className="space-y-4">
-        <legend className="text-sm font-black text-slate-800 mb-3">Acceso a tu panel</legend>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div {...marca('password')}>
-            <Campo label="Contraseña *" error={errores.password}>
-              <input type="password" autoComplete="new-password" value={f.password} onChange={e => set('password', e.target.value)} className={inputCls} />
-            </Campo>
-          </div>
-          <Campo label="Repetir contraseña *" error={errores.confirmar}>
-            <input type="password" autoComplete="new-password" value={f.confirmar} onChange={e => set('confirmar', e.target.value)} className={inputCls} />
-          </Campo>
-        </div>
-      </fieldset>
+      {/* Trampa para bots: invisible para personas y lectores de pantalla. */}
+      <input type="text" name="sitio_web" tabIndex={-1} autoComplete="off" aria-hidden value={f.sitioWeb}
+        onChange={e => set('sitioWeb', e.target.value)} className="absolute -left-[9999px] w-px h-px opacity-0" />
 
       <div className="space-y-3" {...marca('terminos')}>
         <label className="flex items-start gap-3 text-sm text-slate-600 cursor-pointer">

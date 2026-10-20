@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { ArrowLeft, CalendarDays, Clock, Lock, MapPin, Share2, Tag, Users } from 'lucide-react';
 import { View } from '../types';
 import { useProfesional } from './context';
-import { profesionales } from './mock';
+import { profesionales } from './index';
 import { Evento, SEDES, TIPOS_EVENTO } from './types';
 import { formatoFecha, formatoHora, useDatos } from './ui';
 

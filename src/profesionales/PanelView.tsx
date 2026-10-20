@@ -8,7 +8,8 @@ import { useNavigate } from 'react-router';
 import { View } from '../types';
 import { PanelTab, paths } from '../routes';
 import { useProfesional } from './context';
-import { esModoDemo, mockProfesionales, profesionales } from './mock';
+import { mockProfesionales } from './mock';
+import { esModoDemo, profesionales } from './index';
 import {
   COLEGIOS, Descuento, Estudio, Evento, Profesional, PROFESIONES, Sede, SEDES, ZONAS,
 } from './types';

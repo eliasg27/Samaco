@@ -116,4 +116,5 @@ export const ESTUDIOS: Estudio[] = [
 ];
 
 /** Cuenta de demostración aprobada (solo en modo mock). */
-export const DEMO_CUENTA = { email: 'demo@samaco.test', password: 'demo1234' };
+/** Cuenta aprobada para probar el modo demo (sin contraseña, como el ingreso real con código). */
+export const DEMO_CUENTA = { email: 'demo@samaco.test' };

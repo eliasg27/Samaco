@@ -90,7 +90,6 @@ export interface RegistroInput {
   apellido: string;
   email: string;
   telefono: string;
-  password: string;
   profesion: Profesion;
   matricula?: string;
   colegio?: Colegio;
@@ -157,4 +156,13 @@ export interface Estudio {
 
 export type ResultadoAuth =
   | { ok: true; profesional: Profesional }
+  /** codigo 'no-registrado': entró con su cuenta de Shopify pero nunca pidió el alta al Círculo. */
+  | { ok: false; error: string; codigo?: 'no-registrado'; email?: string };
+
+/** Alta: en demo deja la sesión iniciada (trae el profesional); con Shopify queda pendiente y después se ingresa con código. */
+export type ResultadoRegistro =
+  | { ok: true; profesional?: Profesional; yaEsMiembro?: boolean }
   | { ok: false; error: string };
+
+/** Ingreso: en demo es inmediato; con Shopify el navegador se va a la página de Shopify que manda el código. */
+export type ResultadoIngreso = ResultadoAuth | { ok: true; redirigiendo: true };

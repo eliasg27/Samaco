@@ -1,10 +1,11 @@
 import { ProfesionalesService } from './service';
-import { Profesional, RegistroInput, ResultadoAuth } from './types';
+import { Profesional, RegistroInput, ResultadoIngreso, ResultadoRegistro } from './types';
 import { BENEFICIOS, DEMO_CUENTA, DESCUENTOS, ESTUDIOS, EVENTOS } from './mock-data';
 
 // Provider de desarrollo: todo vive en localStorage del navegador. No hay backend ni seguridad real.
+// Igual que el ingreso real (código por email de Shopify), no hay contraseñas: se entra con el email.
 
-interface CuentaGuardada { profesional: Profesional; passwordHash: string }
+interface CuentaGuardada { profesional: Profesional }
 
 const KEY_CUENTAS = 'samaco_pro_cuentas';
 const KEY_SESION  = 'samaco_pro_sesion';
@@ -16,11 +17,6 @@ const escribir = (key: string, value: unknown) => {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage bloqueado */ }
 };
 
-async function hash(texto: string): Promise<string> {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texto));
-  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
 const normalizarMatricula = (m: string) => m.trim().toUpperCase().replace(/\s+/g, '');
 const nuevoNumeroSocio = () => `CP-${String(Math.floor(1000 + Math.random() * 9000))}`;
 
@@ -28,7 +24,6 @@ async function cuentas(): Promise<CuentaGuardada[]> {
   const lista = leer<CuentaGuardada[]>(KEY_CUENTAS, []);
   if (!lista.some(c => c.profesional.email === DEMO_CUENTA.email)) {
     lista.push({
-      passwordHash: await hash(DEMO_CUENTA.password),
       profesional: {
         id: 'pro-demo', numeroSocio: 'CP-0001',
         nombre: 'Cuenta', apellido: 'Demo', email: DEMO_CUENTA.email, telefono: '2610000000',
@@ -55,7 +50,7 @@ async function buscar(id: string) {
 }
 
 export const mockProfesionales: ProfesionalesService & { simularAprobacion(id: string): Promise<Profesional> } = {
-  async registrar(input: RegistroInput): Promise<ResultadoAuth> {
+  async registrar(input: RegistroInput): Promise<ResultadoRegistro> {
     const lista = await cuentas();
     const email = input.email.trim().toLowerCase();
     // La matrícula es opcional; si la cargan, no puede repetirse en el mismo colegio.
@@ -76,14 +71,14 @@ export const mockProfesionales: ProfesionalesService & { simularAprobacion(id: s
       apareceEnDirectorio: input.apareceEnDirectorio, estado: 'pendiente',
       fechaAlta: new Date().toISOString(), eventosInscriptos: [],
     };
-    escribir(KEY_CUENTAS, [...lista, { profesional, passwordHash: await hash(input.password) }]);
+    escribir(KEY_CUENTAS, [...lista, { profesional }]);
     escribir(KEY_SESION, profesional.id);
     return { ok: true, profesional };
   },
 
-  async ingresar(email, password) {
+  async ingresar(email): Promise<ResultadoIngreso> {
     const c = (await cuentas()).find(c => c.profesional.email === email.trim().toLowerCase());
-    if (!c || c.passwordHash !== await hash(password)) return { ok: false, error: 'Email o contraseña incorrectos.' };
+    if (!c) return { ok: false, error: 'No encontramos una solicitud con ese email.', codigo: 'no-registrado', email };
     escribir(KEY_SESION, c.profesional.id);
     return { ok: true, profesional: c.profesional };
   },
@@ -151,5 +146,3 @@ export const mockProfesionales: ProfesionalesService & { simularAprobacion(id: s
   },
 };
 
-export const profesionales = mockProfesionales;
-export const esModoDemo = true;

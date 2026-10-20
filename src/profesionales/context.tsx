@@ -1,12 +1,15 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
-import { profesionales } from './mock';
-import { Profesional, RegistroInput, ResultadoAuth } from './types';
+import { profesionales } from './index';
+import { Profesional, RegistroInput, ResultadoAuth, ResultadoIngreso, ResultadoRegistro } from './types';
 
 interface ProfesionalCtx {
   profesional: Profesional | null;
   cargando: boolean;
-  registrar(input: RegistroInput): Promise<ResultadoAuth>;
-  ingresar(email: string, password: string): Promise<ResultadoAuth>;
+  registrar(input: RegistroInput): Promise<ResultadoRegistro>;
+  /** En demo entra al instante; con Shopify redirige a la página que manda el código por email. */
+  ingresar(email: string): Promise<ResultadoIngreso>;
+  /** Vuelta del login de Shopify (/CPS/acceso?code=…). */
+  completarIngreso(params: URLSearchParams): Promise<ResultadoAuth>;
   salir(): Promise<void>;
   /** Reemplaza el profesional en memoria después de una acción (inscripción, perfil…). */
   actualizar(p: Profesional): void;
@@ -19,20 +22,24 @@ export function ProfesionalProvider({ children }: { children: ReactNode }) {
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    profesionales.sesionActual().then(setProfesional).finally(() => setCargando(false));
+    profesionales.sesionActual().then(setProfesional).catch(() => setProfesional(null)).finally(() => setCargando(false));
   }, []);
 
-  const conResultado = useCallback(async (p: Promise<ResultadoAuth>) => {
-    const r = await p;
-    if (r.ok) setProfesional(r.profesional);
+  const conProfesional = useCallback(<R extends { ok: boolean }>(r: R) => {
+    if (r.ok && 'profesional' in r && r.profesional) setProfesional(r.profesional as Profesional);
     return r;
   }, []);
 
   const value: ProfesionalCtx = {
     profesional,
     cargando,
-    registrar: input => conResultado(profesionales.registrar(input)),
-    ingresar: (email, password) => conResultado(profesionales.ingresar(email, password)),
+    registrar: async input => conProfesional(await profesionales.registrar(input)),
+    ingresar: async email => conProfesional(await profesionales.ingresar(email)),
+    completarIngreso: async params => conProfesional(
+      profesionales.completarIngreso
+        ? await profesionales.completarIngreso(params)
+        : { ok: false, error: 'Ingreso no disponible.' } as ResultadoAuth,
+    ),
     salir: async () => { await profesionales.salir(); setProfesional(null); },
     actualizar: setProfesional,
   };

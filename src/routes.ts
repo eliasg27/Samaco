@@ -67,6 +67,8 @@ export function parseRoute(pathname: string): Route {
   if (m('/financiacion', pathname))             return { view: 'financiacion' };
   if (m(CPS, pathname))                         return { view: 'profesionales' };
   if (m(`${CPS}/ingresar`, pathname))           return { view: 'pro-ingresar' };
+  // Vuelta del login con código de Shopify (Customer Account API): la resuelve la vista de ingreso.
+  if (m(`${CPS}/acceso`, pathname))             return { view: 'pro-ingresar' };
   if (m(`${CPS}/registro`, pathname))           return { view: 'pro-registro' };
   if (m(`${CPS}/panel`, pathname))              return { view: 'panel', tab: 'resumen' };
   if ((r = m(`${CPS}/panel/:tab`, pathname))) {

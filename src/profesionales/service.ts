@@ -1,20 +1,22 @@
-import { Beneficio, Descuento, Estudio, Evento, Profesional, RegistroInput, ResultadoAuth, Sede } from './types';
+import { Beneficio, Descuento, Estudio, Evento, Profesional, RegistroInput, ResultadoAuth, ResultadoIngreso, ResultadoRegistro, Sede } from './types';
 
 /**
  * Contrato del Círculo de Profesionales.
  *
- * Hoy lo implementa mock.ts (localStorage). Mapeo previsto a Shopify:
- *  - Profesional  = Customer de Shopify con tag `profesional` (aprobado) o `profesional-pendiente`,
- *                   y metafields `samaco.matricula`, `samaco.colegio`, `samaco.profesion`, `samaco.sede`…
- *                   El alta pasa por una función propia (Vercel) que crea el customer como pendiente;
- *                   Samaco valida la matrícula y cambia el tag desde el admin.
+ * Implementaciones: shopify.ts (real) y mock.ts (demo en localStorage). index.ts elige según las variables.
+ *  - Profesional  = Customer de Shopify con tags `cps` + `cps-pendiente` → Samaco lo cambia a `cps-aprobado`
+ *                   (o `cps-rechazado`) desde el admin. Datos en metafields `cps.*` (ver api/_lib/cps.ts).
+ *                   El alta y el perfil pasan por las funciones de Vercel en api/cps/ (Admin API).
+ *  - Ingreso      = login sin contraseña de Shopify (Customer Account API: código por email).
  *  - Descuentos   = descuentos automáticos de Shopify con elegibilidad por segmento de clientes (tag `profesional`),
  *                   así el checkout de Shopify los aplica solo.
  *  - Eventos / Estudios / Beneficios = metaobjects de Shopify (`evento`, `estudio`, `beneficio`).
  */
 export interface ProfesionalesService {
-  registrar(input: RegistroInput): Promise<ResultadoAuth>;
-  ingresar(email: string, password: string): Promise<ResultadoAuth>;
+  registrar(input: RegistroInput): Promise<ResultadoRegistro>;
+  ingresar(email: string): Promise<ResultadoIngreso>;
+  /** Vuelta del login de Shopify (/CPS/acceso?code=…). Solo la usa el provider real. */
+  completarIngreso?(params: URLSearchParams): Promise<ResultadoAuth>;
   salir(): Promise<void>;
   sesionActual(): Promise<Profesional | null>;
   actualizarPerfil(id: string, cambios: Partial<Pick<Profesional, 'telefono' | 'estudio' | 'apareceEnDirectorio' | 'sede'>>): Promise<Profesional>;

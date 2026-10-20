@@ -69,7 +69,12 @@ Club para arquitectos, ingenieros, desarrolladores inmobiliarios, constructores 
 
 - Vistas: `profesionales` (landing pública), `pro-ingresar` / `pro-registro` (alta con matrícula), `panel` (privado: credencial, eventos, descuentos, red, perfil).
 - Estados de membresía: `pendiente` → Samaco revisa la solicitud → `aprobado`. Los descuentos y eventos exclusivos se habilitan solo aprobado.
-- `service.ts` documenta el mapeo previsto a Shopify (customers con tag + metafields, descuentos por segmento, metaobjects para eventos/estudios). Hoy corre `mock.ts` en localStorage, con la cuenta demo `demo@samaco.test` / `demo1234` y un botón "Simular aprobación (demo)".
+- **Registro e ingreso reales con Shopify** (`shopify.ts`, elegido en `index.ts` si están `VITE_SHOPIFY_SHOP_ID` y `VITE_SHOPIFY_CUSTOMER_ACCOUNT_CLIENT_ID`; si no, demo `mock.ts` con la cuenta `demo@samaco.test`):
+  - Alta → `POST /api/cps/registro` (función de Vercel, Admin API) crea el **cliente de Shopify** con tags `cps` + `cps-pendiente` y metafields `cps.*` (textos legibles; mapeo en `api/_lib/cps.ts`).
+  - Samaco revisa en el admin → Clientes → segmentos **"Círculo – pendientes" / "Círculo – miembros"** y aprueba cambiando el tag a `cps-aprobado` (o `cps-rechazado`).
+  - Ingreso **sin contraseña**: login de Shopify con código por email (Customer Account API, OAuth PKCE). Callback `/CPS/acceso` (registrado en Headless → Customer Account API). `GET/PATCH /api/cps/perfil` valida el token contra Shopify.
+  - Eventos, descuentos, beneficios y estudios siguen siendo datos de ejemplo.
+  - `scripts/cps-setup.mjs` crea las definiciones de metafields y los segmentos (idempotente). En local, `npm run dev` sirve `api/` con un plugin de Vite.
 - Datos de ejemplo en `mock-data.ts` (eventos, estudios, descuentos, asesores en `ui.tsx`): reemplazar por los reales.
 - El directorio de profesionales muestra solo a quienes aceptaron aparecer (opt-in).
 

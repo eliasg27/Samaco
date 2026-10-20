@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 import { ArrowRight, BadgeCheck, ChevronDown, ClipboardList, Lock, MapPin, ShieldCheck } from 'lucide-react';
 import { View } from '../types';
-import { profesionales } from './mock';
+import { profesionales } from './index';
 import { useProfesional } from './context';
 import { Beneficio, Estudio, Evento, Sede, SEDES } from './types';
 import { BeneficioCard, CPS_LOGO, EventoCard, SeccionTitulo, SedeFiltro, useDatos } from './ui';
