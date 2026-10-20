@@ -9,7 +9,7 @@ import {
   COLEGIOS, COMO_NOS_CONOCISTE, COMPRAS_EN_SAMACO, PROFESIONES, SEDES, ZONAS,
   type Colegio, type ComoNosConociste, type ComprasEnSamaco, type EstadoMembresia,
   type Profesion, type Profesional, type RegistroInput, type Sede, type Zona,
-} from '../../src/profesionales/types';
+} from '../../src/profesionales/types.js';
 
 export const TAG_BASE = 'cps';
 export const TAG = { pendiente: 'cps-pendiente', aprobado: 'cps-aprobado', rechazado: 'cps-rechazado' } as const;

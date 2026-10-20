@@ -2,9 +2,9 @@
 //  GET   → Profesional (404 { error: 'no-registrado' } si el cliente no pidió el alta al Círculo)
 //  PATCH → actualiza teléfono, estudio, sede, directorio o eventos inscriptos
 // El navegador manda el token de Customer Account API (login con código de Shopify) en Authorization.
-import { admin, clienteLogueado, respuesta } from '../_lib/shopify';
-import { CAMPOS_CLIENTE, TAG_BASE, aProfesional, type ClienteAdmin } from '../_lib/cps';
-import { SEDES, type Profesional } from '../../src/profesionales/types';
+import { admin, clienteLogueado, respuesta } from '../_lib/shopify.js';
+import { CAMPOS_CLIENTE, TAG_BASE, aProfesional, type ClienteAdmin } from '../_lib/cps.js';
+import { SEDES, type Profesional } from '../../src/profesionales/types.js';
 
 async function leer(id: string) {
   const { customer } = await admin<{ customer: ClienteAdmin | null }>(

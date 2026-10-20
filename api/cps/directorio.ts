@@ -1,7 +1,7 @@
 // GET /api/cps/directorio — miembros aprobados que aceptaron aparecer en la Red de Profesionales.
 // Solo devuelve datos públicos (nombre, especialidad, estudio, sede). Lo ven únicamente miembros logueados.
-import { admin, clienteLogueado, respuesta } from '../_lib/shopify';
-import { CAMPOS_CLIENTE, TAG, aProfesional, type ClienteAdmin } from '../_lib/cps';
+import { admin, clienteLogueado, respuesta } from '../_lib/shopify.js';
+import { CAMPOS_CLIENTE, TAG, aProfesional, type ClienteAdmin } from '../_lib/cps.js';
 
 export async function GET(request: Request) {
   const sesion = await clienteLogueado(request.headers.get('authorization'));

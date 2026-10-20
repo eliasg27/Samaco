@@ -1,9 +1,9 @@
 // POST /api/cps/registro — alta al Círculo de Profesionales.
 // Crea (o completa, si ya compró antes) el cliente de Shopify con los tags `cps` + `cps-pendiente`
 // y sus datos en metafields `cps.*`. Samaco lo aprueba desde el admin cambiando el tag.
-import { admin, respuesta } from '../_lib/shopify';
-import { CAMPOS_CLIENTE, TAG, TAG_BASE, metafieldsRegistro, validarRegistro, type ClienteAdmin } from '../_lib/cps';
-import type { RegistroInput } from '../../src/profesionales/types';
+import { admin, respuesta } from '../_lib/shopify.js';
+import { CAMPOS_CLIENTE, TAG, TAG_BASE, metafieldsRegistro, validarRegistro, type ClienteAdmin } from '../_lib/cps.js';
+import type { RegistroInput } from '../../src/profesionales/types.js';
 
 export async function POST(request: Request) {
   let input: Partial<RegistroInput> & { sitio_web?: string };
