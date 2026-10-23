@@ -1,5 +1,11 @@
-// Medios de pago y financiación — promociones vigentes informadas por Samaco (hasta el 31/10/26 o hasta agotar stock).
-// Una promo con `vigenteHasta` vencida deja de mostrarse sola en el carrusel, en /financiacion y en el banner de la home.
+// Medios de pago y financiación — promociones informadas por Samaco.
+//
+// Estos datos son el RESPALDO: el sitio los reemplaza por los que se cargan en Shopify (metaobjetos
+// "Promoción de pago", "Banner de la home" y "Textos del sitio", ver api/contenido.ts y src/contenido/).
+//
+// Vigencia: 'mensual' = se renueva cada mes, nunca se oculta y la leyenda muestra el último día del mes en curso.
+// Una fecha (YYYY-MM-DD) = promo especial que deja de mostrarse después de ese día.
+// En los textos, {vigencia} se reemplaza por la fecha que corresponda ("30 de noviembre de 2026").
 
 export type Canal = 'online' | 'sucursal' | 'ambos';
 
@@ -27,20 +33,31 @@ export interface MedioPago {
   tarjetas: string[];
   planes: Plan[];
   notas: string[];
-  vigenteHasta?: string; // YYYY-MM-DD, inclusive
+  vigencia: Vigencia;
   color: string;      // fondo del ícono / acento
   textColor: string;  // color del titular
 }
 
-const VIGENCIA = '2026-10-31';
+/** 'mensual' o una fecha de fin YYYY-MM-DD (inclusive). */
+export type Vigencia = 'mensual' | string;
+
+const VIGENCIA: Vigencia = 'mensual';
 
 /** Promo general destacada (banner de la home y cabecera de /financiacion). */
-export const PROMO_DESTACADA = {
+export interface PromoDestacada {
+  titulo: string;
+  bajada: string;
+  tarjetas: string[];
+  canal: Canal;
+  vigencia: Vigencia;
+}
+
+export const PROMO_DESTACADA: PromoDestacada = {
   titulo: '9 cuotas sin interés',
   bajada: 'Todos los días, en todas las líneas de productos',
   tarjetas: ['BNA+', 'Visa', 'Mastercard', 'Naranja X Visa'],
-  canal: 'ambos' as Canal,
-  vigenteHasta: VIGENCIA,
+  canal: 'ambos',
+  vigencia: VIGENCIA,
 };
 
 const planesTarjeta = (ultimo: Plan): Plan[] => [
@@ -63,7 +80,7 @@ export const MEDIOS_PAGO: MedioPago[] = [
       { etiqueta: 'Crédito en 1 cuota',     tipo: 'contado', cuotas: 1, descuento: 10 },
     ],
     notas: ['Promoción vía página web.'],
-    vigenteHasta: VIGENCIA,
+    vigencia: VIGENCIA,
     color: 'bg-emerald-500', textColor: 'text-emerald-700',
   },
   {
@@ -74,7 +91,7 @@ export const MEDIOS_PAGO: MedioPago[] = [
     tarjetas: ['BNA+'],
     planes: planesTarjeta({ etiqueta: '12 cuotas sin interés', tipo: 'sin-interes', cuotas: 12 }),
     notas: ['Promoción vía sucursales y tienda web, todos los días.'],
-    vigenteHasta: VIGENCIA,
+    vigencia: VIGENCIA,
     color: 'bg-[#1B4F8C]', textColor: 'text-[#1B4F8C]',
   },
   {
@@ -85,7 +102,7 @@ export const MEDIOS_PAGO: MedioPago[] = [
     tarjetas: ['Visa', 'Mastercard', 'Naranja X Visa'],
     planes: planesTarjeta({ etiqueta: '12 cuotas fijas', tipo: 'fijas', cuotas: 12 }),
     notas: ['Incluye Naranja Visa.', 'AMEX bancaria: solo 1 cuota.'],
-    vigenteHasta: VIGENCIA,
+    vigencia: VIGENCIA,
     color: 'bg-purple-600', textColor: 'text-purple-700',
   },
   {
@@ -96,19 +113,36 @@ export const MEDIOS_PAGO: MedioPago[] = [
     tarjetas: ['Naranja X', 'Cabal', 'Cencosud', 'Montemar', 'American Express no bancaria'],
     planes: planesTarjeta({ etiqueta: '12 cuotas fijas', tipo: 'fijas', cuotas: 12 }),
     notas: ['Naranja X: hasta 6 cuotas.'],
-    vigenteHasta: VIGENCIA,
+    vigencia: VIGENCIA,
     color: 'bg-orange-500', textColor: 'text-orange-700',
   },
 ];
 
-export const LEGAL = 'Aplica para todas las líneas de productos y categorías. Sujeto a modificaciones. Válido hasta el 31/10/26 o hasta agotar stock.';
+export const LEGAL = 'Aplica para todas las líneas de productos y categorías. Sujeto a modificaciones. Válido hasta el {vigencia} o hasta agotar stock.';
 
-export const estaVigente = (m: { vigenteHasta?: string }, hoy = new Date()) =>
-  !m.vigenteHasta || new Date(`${m.vigenteHasta}T23:59:59-03:00`) >= hoy;
+/** Mensajes extra de la cinta superior (además de las promos, WhatsApp, sucursales y el Círculo). */
+export const CINTA: string[] = ['Envío gratis en compras +$900.000'];
 
-export const mediosVigentes = () => MEDIOS_PAGO.filter(m => estaVigente(m));
-export const promoDestacadaVigente = () => (estaVigente(PROMO_DESTACADA) ? PROMO_DESTACADA : null);
+const fechaLarga = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Argentina/Buenos_Aires' });
 
-/** Máximo descuento contado vigente (para textos como "15% OFF con transferencia"). */
-export const descuentoTransferencia = () =>
-  mediosVigentes().flatMap(m => m.planes).find(p => p.tipo === 'contado' && p.etiqueta.startsWith('Transferencia'))?.descuento ?? null;
+/** Último día de vigencia: fin del mes en curso (mensual) o la fecha indicada. */
+export function finDeVigencia(v: Vigencia, hoy = new Date()): Date {
+  if (v === 'mensual') {
+    const ar = new Date(hoy.toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' }));
+    return new Date(ar.getFullYear(), ar.getMonth() + 1, 0, 12);
+  }
+  return new Date(`${v}T12:00:00-03:00`);
+}
+
+export const textoVigencia = (v: Vigencia, hoy = new Date()) => fechaLarga.format(finDeVigencia(v, hoy));
+
+/** Reemplaza {vigencia} en un texto editable. */
+export const conVigencia = (texto: string, v: Vigencia = 'mensual') => texto.replace(/\{vigencia\}/g, textoVigencia(v));
+
+/** Las mensuales siempre están vigentes; las de fecha, hasta ese día inclusive. */
+export const estaVigente = (m: { vigencia?: Vigencia }, hoy = new Date()) =>
+  !m.vigencia || m.vigencia === 'mensual' || new Date(`${m.vigencia}T23:59:59-03:00`) >= hoy;
+
+/** Máximo descuento contado (para textos como "15% OFF con transferencia"). */
+export const descuentoTransferencia = (medios: MedioPago[]) =>
+  medios.flatMap(m => m.planes).find(p => p.tipo === 'contado' && p.etiqueta.startsWith('Transferencia'))?.descuento ?? null;

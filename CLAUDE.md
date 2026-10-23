@@ -55,9 +55,16 @@ React Router (`BrowserRouter`) + `vercel.json` con rewrite a `index.html`. Todas
 - `/cps` en cualquier combinación de mayúsculas redirige a `/CPS`.
 - Cada vista dentro de `<AnimatePresence>` tiene que tener como raíz un `motion.div`, incluso en estados de carga o vacíos; si no, la transición queda colgada.
 
+## Contenido editable (`src/contenido/`, `api/contenido.ts`)
+
+Promociones de pago, banners de la home, cinta superior, promo destacada y leyenda legal **se editan en Shopify → Contenido → Metaobjetos** (`samaco_promo`, `samaco_plan`, `samaco_banner`, `samaco_sitio`; estructura y carga inicial con `scripts/contenido-setup.mjs`, idempotente). `GET /api/contenido` los lee con la Admin API (cache CDN 5 min) y `ContenidoProvider`/`useContenido()` los reparte; si Shopify falla o una lista viene vacía, se usa el respaldo del código (`financiacion/data.ts`, `BANNERS`). Guía para el equipo: `docs/editar-contenido.md`.
+
+- **Vigencia:** `'mensual'` (default) = se renueva sola, nunca se oculta y la leyenda muestra el fin del mes en curso; una fecha `YYYY-MM-DD` = promo especial que se oculta después de ese día. `{vigencia}` en los textos se reemplaza por la fecha.
+- Opciones de los selectores (canal, tipo de plan, color, destino del botón) en `src/contenido/opciones.ts`: tienen que coincidir con las del script.
+
 ## Medios de pago (`src/financiacion/`)
 
-- `data.ts`: promociones reales de Samaco (canal online / sucursal / ambos, planes de cuotas y descuentos, `vigenteHasta`) y la promo destacada de 9 cuotas. Una promo vencida se oculta sola del carrusel de la home y de `/financiacion`.
+- `data.ts`: tipos, helpers de vigencia y el **respaldo** de las promos (las reales viven en Shopify, ver arriba).
 - `CarruselMediosPago.tsx` (home) y la barra superior del header: cinta en loop continuo (clases `marquee` en `index.css`), pausa con hover/foco y respeta `prefers-reduced-motion`.
 - `FinanciacionView.tsx`: listado con condiciones + simulador de cuotas.
 
@@ -101,7 +108,7 @@ Plantillas de Shopify (compra, retiro, envío, cancelación, reembolso, carrito 
 ## Pendiente de definir
 
 - **Árbol de categorías**: se va a rehacer más adelante con Samaco. Samaco **no vende Herramientas** (la categoría está en el mock y en el menú; sacarla al rehacer el árbol). Mantener: categoría Ofertas y las cucardas de producto (Nuevo / % OFF).
-- **Promociones**: las de `src/financiacion/data.ts` vencen el 31/10/26. Pedir las nuevas a Samaco antes de esa fecha; vencidas se ocultan solas.
+- **Promociones**: se renuevan cada mes; cuando Samaco cambie condiciones, editarlas en Shopify (metaobjeto "Promoción de pago").
 
 - Tienda Shopify (dominio `*.myshopify.com`) y token de Storefront API.
 - Quién arma la sync Paljet → Shopify y con qué documentación de la API de Paljet.

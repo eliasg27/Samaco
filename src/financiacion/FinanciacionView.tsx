@@ -2,12 +2,11 @@ import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { Calculator, Info, MapPin, Monitor, Sparkles } from 'lucide-react';
 import { useLocation } from 'react-router';
-import { CANALES, Canal, LEGAL, MedioPago, mediosVigentes, Plan, promoDestacadaVigente } from './data';
+import { CANALES, Canal, MedioPago, Plan, conVigencia, textoVigencia } from './data';
+import { useContenido } from '../contenido';
 import { LogosPago } from './logos';
 
 const fmt = (n: number) => '$' + Math.round(n).toLocaleString('es-AR');
-const fechaCorta = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
-const vigencia = (iso: string) => fechaCorta.format(new Date(`${iso}T12:00:00-03:00`));
 
 const CanalBadge = ({ canal }: { canal: Canal }) => {
   const Icon = canal === 'sucursal' ? MapPin : Monitor;
@@ -47,8 +46,7 @@ function PlanesTabla({ medio }: { medio: MedioPago }) {
 
 /** /financiacion: todas las promociones vigentes, separadas por canal, con simulador. */
 export function FinanciacionView() {
-  const medios = mediosVigentes();
-  const promo = promoDestacadaVigente();
+  const { medios, destacada: promo, legal } = useContenido();
   const { hash } = useLocation();
   const [monto, setMonto] = useState(500000);
   const [medioSim, setMedioSim] = useState(medios[0]?.id ?? '');
@@ -84,11 +82,9 @@ export function FinanciacionView() {
           <div className="mt-4 flex flex-wrap gap-2">
             <LogosPago tarjetas={m.tarjetas} size="md" />
           </div>
-          {(m.notas.length > 0 || m.vigenteHasta) && (
-            <p className="mt-3 text-xs text-slate-400">
-              {m.notas.join(' ')}{m.vigenteHasta ? ` Vigente hasta el ${vigencia(m.vigenteHasta)} o hasta agotar stock.` : ''}
-            </p>
-          )}
+          <p className="mt-3 text-xs text-slate-400">
+            {m.notas.join(' ')} Vigente hasta el {textoVigencia(m.vigencia)} o hasta agotar stock.
+          </p>
         </article>
       ))}
     </section>
@@ -111,7 +107,7 @@ export function FinanciacionView() {
               <div className="flex flex-wrap gap-1.5 mt-4">
                 <LogosPago tarjetas={promo.tarjetas} size="md" />
               </div>
-              <p className="text-[11px] text-slate-300 mt-4">Compra presencial y web. Vigente hasta el {vigencia(promo.vigenteHasta)} o hasta agotar stock.</p>
+              <p className="text-[11px] text-slate-300 mt-4">Compra presencial y web. Vigente hasta el {textoVigencia(promo.vigencia)} o hasta agotar stock.</p>
             </div>
           )}
         </div>
@@ -125,7 +121,7 @@ export function FinanciacionView() {
           {bloque('Comprando en la web', 'Disponibles en samaco online (y la mayoría también en sucursales).', online)}
           {bloque('En nuestras sucursales', 'Promociones válidas solo para compras presenciales.', sucursal)}
           <p className="flex gap-2 text-xs text-slate-400">
-            <Info className="w-4 h-4 shrink-0" />{LEGAL}
+            <Info className="w-4 h-4 shrink-0" />{conVigencia(legal)}
           </p>
         </div>
 

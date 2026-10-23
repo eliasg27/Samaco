@@ -1,7 +1,8 @@
 import { ArrowRight, CreditCard, Sparkles } from 'lucide-react';
 import { Link } from 'react-router';
 import { paths } from '../routes';
-import { CANALES, Canal, mediosVigentes, promoDestacadaVigente } from './data';
+import { CANALES, Canal } from './data';
+import { useContenido } from '../contenido';
 import { LogosPago } from './logos';
 
 interface Tarjeta {
@@ -21,13 +22,13 @@ interface Tarjeta {
  * se pausa con el mouse encima o con foco, y queda quieta y deslizable si el usuario pidió menos movimiento.
  */
 export function CarruselMediosPago() {
-  const promo = promoDestacadaVigente();
+  const { destacada: promo, medios } = useContenido();
   const items: Tarjeta[] = [
     ...(promo ? [{
       id: 'destacada', href: paths.financiacion(), nombre: promo.bajada, beneficio: promo.titulo,
       canal: promo.canal, tarjetas: promo.tarjetas, color: 'bg-[#E8593C]', textColor: 'text-[#E8593C]', destacada: true,
     }] : []),
-    ...mediosVigentes().map(m => ({
+    ...medios.map(m => ({
       id: m.id, href: `${paths.financiacion()}#${m.id}`, nombre: m.nombre, beneficio: m.beneficio,
       canal: m.canal, tarjetas: m.tarjetas, color: m.color, textColor: m.textColor,
     })),

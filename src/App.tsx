@@ -23,45 +23,13 @@ import { EventoView } from './profesionales/EventoView';
 import { CPS_LOGO } from './profesionales/ui';
 import { CarruselMediosPago } from './financiacion/CarruselMediosPago';
 import { FinanciacionView } from './financiacion/FinanciacionView';
-import { descuentoTransferencia, estaVigente, promoDestacadaVigente } from './financiacion/data';
+import { conVigencia, descuentoTransferencia } from './financiacion/data';
+import { useContenido } from './contenido';
 
 // ─────────────────────────────────────────────
 // CONSTANTS
 // ─────────────────────────────────────────────
 
-// Los slides con `vigenteHasta` se ocultan solos cuando vence la promo.
-const HERO_SLIDES = ([
-  {
-    badge: 'Todos los días',
-    title: '9 Cuotas\nSin Interés',
-    subtitle: 'Con BNA+, Visa, Mastercard y Naranja X Visa, en todas las líneas de productos. Vigente hasta el 31/10/26 o hasta agotar stock.',
-    cta: 'Ver financiación',
-    to: 'financiacion',
-    vigenteHasta: '2026-10-31',
-    bg: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&q=80&w=1400',
-    badgeColor: '#1B4F8C',
-  },
-  {
-    badge: '15% OFF',
-    title: 'Pagá con\nTransferencia',
-    subtitle: 'Comprando en la web: 15% OFF con transferencia bancaria y 10% OFF con débito o crédito en 1 pago. Vigente hasta el 31/10/26.',
-    cta: 'Ver medios de pago',
-    to: 'financiacion',
-    vigenteHasta: '2026-10-31',
-    bg: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&q=80&w=1400',
-    badgeColor: '#E8593C',
-  },
-  {
-    badge: 'Samaco',
-    title: 'Stock\nGarantizado',
-    subtitle: 'Acopio de materiales sin cargo, congelá el precio hoy y retirá cuando necesitás. Entrega en obra con flota propia.',
-    cta: 'Conocer más',
-    to: 'sucursales',
-    bg: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&q=80&w=1400',
-    badgeColor: '#1B4F8C',
-  },
-] as { badge: string; title: string; subtitle: string; cta: string; to: View; vigenteHasta?: string; bg: string; badgeColor: string }[])
-  .filter(s => estaVigente(s));
 
 const WHY_SAMACO = [
   { icon: Package,   title: 'Stock Garantizado', description: 'Más de 5.000 productos en stock permanente. Lo que necesitás, cuando lo necesitás.',    color: 'bg-blue-50',    iconColor: 'text-[#1B4F8C]'   },
@@ -417,10 +385,12 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
   const q             = searchQuery.trim().toLowerCase();
   const sugCategories = q.length >= 2 ? categories.filter(c => c.name.toLowerCase().includes(q)).slice(0, 3) : [];
 
-  const promo9 = promoDestacadaVigente();
-  const transf = descuentoTransferencia();
+  // Cinta superior: mensajes editables en Shopify ("Textos del sitio") + promos y accesos fijos.
+  const contenido = useContenido();
+  const promo9 = contenido.destacada;
+  const transf = descuentoTransferencia(contenido.medios);
   const topBarItems: { label: string; icon?: React.ReactNode; onClick?: () => void; href?: string }[] = [
-    { label: 'Envío gratis en compras +$900.000', icon: <span className="w-1.5 h-1.5 rounded-full bg-[#E8593C] animate-pulse" /> },
+    ...contenido.cinta.map(label => ({ label: conVigencia(label), icon: <span className="w-1.5 h-1.5 rounded-full bg-[#E8593C] animate-pulse" /> })),
     ...(promo9 ? [{ label: `${promo9.titulo} todos los días`, icon: <CreditCard className="w-3 h-3" />, onClick: () => navigateTo('financiacion') }] : []),
     ...(transf ? [{ label: `${transf}% OFF con transferencia`, onClick: () => navigateTo('financiacion') }] : []),
     { label: 'WhatsApp atención', icon: <Phone className="w-3 h-3" />, href: 'https://wa.me/5492615555555' },
@@ -794,6 +764,8 @@ interface AppCtx {
 function HomeView({ ctx }: { ctx: AppCtx }) {
   const { navigateTo, addToCart, favorites, toggleFavorite, compareList, toggleCompare } = ctx;
   const [slide, setSlide] = useState(0);
+  // Banners editables en Shopify ("Banner de la home"); los de fecha vencida ya vienen filtrados.
+  const { banners: HERO_SLIDES } = useContenido();
   const { data: categories } = useCategories();
   const { data: featured, loading: featuredLoading } = useProducts({ featured: true, limit: 8 });
   // Si en Shopify todavía no hay productos con la etiqueta "destacado", mostramos los últimos cargados.
@@ -802,9 +774,11 @@ function HomeView({ ctx }: { ctx: AppCtx }) {
   const homeLoading  = featuredLoading || (featured.length === 0 && latestLoading);
 
   useEffect(() => {
-    const t = setInterval(() => setSlide(s => (s + 1) % HERO_SLIDES.length), 5000);
+    const t = setInterval(() => setSlide(s => (s + 1) % Math.max(HERO_SLIDES.length, 1)), 5000);
     return () => clearInterval(t);
-  }, []);
+  }, [HERO_SLIDES.length]);
+  // Si cambia la cantidad de banners (llegan los de Shopify), no quedar en un índice que ya no existe.
+  const actual = HERO_SLIDES[slide] ?? HERO_SLIDES[0];
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -814,7 +788,7 @@ function HomeView({ ctx }: { ctx: AppCtx }) {
         {HERO_SLIDES.map((s, i) => (
           <div key={i} aria-hidden={i !== slide}
             className={`hero-slide absolute inset-0 ${i === slide ? 'opacity-100' : 'opacity-0'}`}>
-            <img src={s.bg} alt="" loading={i === 0 ? 'eager' : 'lazy'} referrerPolicy="no-referrer"
+            <img src={s.imagen} alt="" loading={i === 0 ? 'eager' : 'lazy'} referrerPolicy="no-referrer"
               className="absolute inset-0 w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-transparent" />
           </div>
@@ -826,16 +800,16 @@ function HomeView({ ctx }: { ctx: AppCtx }) {
                 initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 30 }}
                 transition={{ duration: 0.5 }} className="max-w-xl text-white">
                 <span className="inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-5"
-                  style={{ background: HERO_SLIDES[slide].badgeColor }}>
-                  {HERO_SLIDES[slide].badge}
+                  style={{ background: actual.colorEtiqueta }}>
+                  {actual.etiqueta}
                 </span>
                 <h1 className="text-4xl md:text-6xl font-black leading-none tracking-tighter mb-5 whitespace-pre-line">
-                  {HERO_SLIDES[slide].title}
+                  {actual.titulo}
                 </h1>
-                <p className="text-slate-300 text-base mb-8 leading-relaxed max-w-md">{HERO_SLIDES[slide].subtitle}</p>
-                <button onClick={() => navigateTo(HERO_SLIDES[slide].to)}
+                <p className="text-slate-300 text-base mb-8 leading-relaxed max-w-md">{conVigencia(actual.bajada, actual.vigencia)}</p>
+                <button onClick={() => navigateTo(actual.destino)}
                   className="bg-[#E8593C] hover:bg-[#d14a2f] text-white font-black py-4 px-10 rounded-2xl text-sm uppercase tracking-widest transition-all shadow-2xl hover:-translate-y-0.5 active:translate-y-0">
-                  {HERO_SLIDES[slide].cta}
+                  {actual.boton}
                 </button>
               </motion.div>
             </AnimatePresence>
