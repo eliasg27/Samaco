@@ -8,6 +8,7 @@ Cada promoción y banner tiene una **vigencia**:
 
 - **Se renueva cada mes** (la normal): nunca se oculta. La leyenda "Vigente hasta el…" muestra sola el último día del mes en curso (31/10, 30/11, 31/12…). Cuando Samaco cambia las condiciones, se editan los datos y listo.
 - **Termina en una fecha**: para promos especiales (Hot Sale, aniversario). Se completa la **Fecha de fin** y el sitio la oculta sola al día siguiente.
+- **Mostrar desde**: para dejar cargadas las promos del mes que viene. No se ven hasta ese día. Para el cambio de mes: a las del mes actual se les pone "Termina en una fecha" con el último día, y las nuevas se cargan con "Mostrar desde" el día 1.
 
 En los textos se puede escribir `{vigencia}` y el sitio pone la fecha que corresponde. Ejemplo: "Vigente hasta el {vigencia} o hasta agotar stock."
 
@@ -22,7 +23,7 @@ Es cada tarjeta del carrusel "Medios de pago" de la home y cada bloque de `/fina
 | **Titular** | Lo grande. Ej: "Hasta 12 cuotas sin interés". |
 | **Medios incluidos** | Ej: "Visa, Mastercard y Naranja Visa". |
 | **Dónde aplica** | Online y en sucursales / Solo online / Solo en sucursales. |
-| **Tarjetas / bancos (logos)** | Uno por línea. Los que tienen logo: BNA+, Visa, Mastercard, Naranja X, Naranja X Visa, Cabal, Cencosud, Montemar, American Express, Transferencia bancaria, Tarjeta de débito, Tarjeta de crédito. |
+| **Tarjetas / bancos (logos)** | Uno por línea. Los que tienen logo: BNA+, Banco Nación, Visa, Mastercard, Naranja X, Naranja X Visa, Cabal, Cencosud, Montemar, American Express, Transferencia bancaria, Tarjeta de débito, Tarjeta de crédito. |
 | **Planes** | Las opciones con cuotas y descuento. Se usan en la tabla y en el simulador. Cada plan es un "Plan de cuotas" (ver abajo). |
 | **Aclaraciones** | Letra chica. Una por línea. |
 | **Color** | Acento de la tarjeta: Azul, Verde, Violeta, Naranja o Rojo. |

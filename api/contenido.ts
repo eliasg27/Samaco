@@ -63,6 +63,7 @@ function aMedio(e: Entrada): (MedioPago & { orden: number }) | null {
     planes: (f.planes?.references?.nodes ?? []).map((n) => aPlan(n.fields)).filter((p): p is Plan => p !== null),
     notas: texto(f.notas).split('\n').map((l) => l.trim()).filter(Boolean),
     vigencia: vigencia(f.vigencia, f.fin),
+    ...(texto(f.inicio) ? { desde: texto(f.inicio) } : {}),
     ...colores,
     orden: numero(f.orden) ?? 99,
   };
@@ -81,6 +82,7 @@ function aBanner(e: Entrada, i: number): (Banner & { orden: number }) | null {
     imagen: f.imagen?.reference?.image?.url ?? imagenBannerPorDefecto(i),
     colorEtiqueta: COLOR_ETIQUETA[texto(f.color_etiqueta)] ?? COLOR_ETIQUETA.Azul,
     vigencia: vigencia(f.vigencia, f.fin),
+    ...(texto(f.inicio) ? { desde: texto(f.inicio) } : {}),
     orden: numero(f.orden) ?? 99,
   };
 }

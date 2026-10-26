@@ -24,6 +24,8 @@ export interface Banner {
   imagen: string;
   colorEtiqueta: string;
   vigencia: Vigencia;
+  /** Fecha desde la que se muestra (YYYY-MM-DD). */
+  desde?: string;
 }
 
 export interface Contenido {

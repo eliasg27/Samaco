@@ -34,6 +34,8 @@ export interface MedioPago {
   planes: Plan[];
   notas: string[];
   vigencia: Vigencia;
+  /** Fecha desde la que se muestra (YYYY-MM-DD). Sirve para dejar cargada la promo del mes siguiente. */
+  desde?: string;
   color: string;      // fondo del ícono / acento
   textColor: string;  // color del titular
 }
@@ -139,9 +141,13 @@ export const textoVigencia = (v: Vigencia, hoy = new Date()) => fechaLarga.forma
 /** Reemplaza {vigencia} en un texto editable. */
 export const conVigencia = (texto: string, v: Vigencia = 'mensual') => texto.replace(/\{vigencia\}/g, textoVigencia(v));
 
-/** Las mensuales siempre están vigentes; las de fecha, hasta ese día inclusive. */
-export const estaVigente = (m: { vigencia?: Vigencia }, hoy = new Date()) =>
-  !m.vigencia || m.vigencia === 'mensual' || new Date(`${m.vigencia}T23:59:59-03:00`) >= hoy;
+/**
+ * Se muestra si ya empezó (`desde`, inclusive, hora Argentina) y no terminó: las mensuales no terminan nunca;
+ * las de fecha, hasta ese día inclusive.
+ */
+export const estaVigente = (m: { vigencia?: Vigencia; desde?: string }, hoy = new Date()) =>
+  (!m.desde || new Date(`${m.desde}T00:00:00-03:00`) <= hoy)
+  && (!m.vigencia || m.vigencia === 'mensual' || new Date(`${m.vigencia}T23:59:59-03:00`) >= hoy);
 
 /** Máximo descuento contado (para textos como "15% OFF con transferencia"). */
 export const descuentoTransferencia = (medios: MedioPago[]) =>

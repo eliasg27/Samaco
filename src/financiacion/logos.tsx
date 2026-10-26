@@ -3,6 +3,7 @@
 
 const LOGOS: Record<string, { src: string; alt: string }> = {
   'BNA+':                         { src: '/pagos/bna.webp',        alt: 'BNA+' },
+  'Banco Nación':                 { src: '/pagos/bna.webp',        alt: 'Banco Nación' },
   'Visa':                         { src: '/pagos/visa.webp',       alt: 'Visa' },
   'Mastercard':                   { src: '/pagos/mastercard.webp', alt: 'Mastercard' },
   'Naranja X':                    { src: '/pagos/naranjax.webp',   alt: 'Naranja X' },

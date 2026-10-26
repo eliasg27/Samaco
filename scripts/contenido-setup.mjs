@@ -14,7 +14,7 @@ const choices = (lista) => [{ name: 'choices', value: JSON.stringify(lista) }];
 const VIGENCIA = ['Se renueva cada mes', 'Termina en una fecha'];
 const AYUDA_VIGENCIA = '"Se renueva cada mes": nunca se oculta y muestra el último día del mes en curso. "Termina en una fecha": se oculta sola después de la fecha de fin.';
 const AYUDA_TEXTO = 'Podés escribir {vigencia} y el sitio pone la fecha de vigencia (por ejemplo "30 de noviembre de 2026").';
-const TARJETAS = 'Una por línea. Con logo: BNA+, Visa, Mastercard, Naranja X, Naranja X Visa, Cabal, Cencosud, Montemar, American Express, Transferencia bancaria, Tarjeta de débito, Tarjeta de crédito.';
+const TARJETAS = 'Una por línea. Con logo: BNA+, Banco Nación, Visa, Mastercard, Naranja X, Naranja X Visa, Cabal, Cencosud, Montemar, American Express, Transferencia bancaria, Tarjeta de débito, Tarjeta de crédito.';
 
 async function definicion(type, name, displayNameKey, fieldDefinitions) {
   const r = await admin(`query($t: String!) { metaobjectDefinitionByType(type: $t) { id } }`, { t: type });
@@ -27,6 +27,21 @@ async function definicion(type, name, displayNameKey, fieldDefinitions) {
   if (userErrors.length) throw new Error(`${type}: ${userErrors.map((e) => `${e.field} ${e.message}`).join('; ')}`);
   console.log(`+ ${type}`);
   return metaobjectDefinition.id;
+}
+
+/** Agrega campos nuevos a una definición que ya existía (no toca los existentes). */
+async function asegurarCampos(type, campos) {
+  const r = await admin(`query($t: String!) { metaobjectDefinitionByType(type: $t) { id fieldDefinitions { key } } }`, { t: type });
+  const def = r.metaobjectDefinitionByType;
+  const faltan = campos.filter((c) => !def.fieldDefinitions.some((f) => f.key === c.key));
+  if (!faltan.length) return;
+  const u = await admin(
+    `mutation($id: ID!, $d: MetaobjectDefinitionUpdateInput!) { metaobjectDefinitionUpdate(id: $id, definition: $d) { userErrors { field message } } }`,
+    { id: def.id, d: { fieldDefinitions: faltan.map((c) => ({ create: c })) } },
+  );
+  const err = u.metaobjectDefinitionUpdate.userErrors;
+  if (err.length) throw new Error(`${type}: ${err.map((e) => e.message).join('; ')}`);
+  console.log(`+ ${type}: ${faltan.map((c) => c.key).join(', ')}`);
 }
 
 async function entrada(type, handle, campos) {
@@ -61,6 +76,7 @@ await definicion('samaco_promo', 'Promoción de pago', 'beneficio', [
   { key: 'planes', name: 'Planes', type: 'list.metaobject_reference', validations: [{ name: 'metaobject_definition_id', value: planId }], description: 'Las opciones de pago con sus cuotas y descuentos (se usan en el simulador).' },
   { key: 'notas', name: 'Aclaraciones', type: 'multi_line_text_field', description: 'Letra chica de esta promo.' },
   { key: 'vigencia', name: 'Vigencia', type: 'single_line_text_field', required: true, validations: choices(VIGENCIA), description: AYUDA_VIGENCIA },
+  { key: 'inicio', name: 'Mostrar desde', type: 'date', description: 'Opcional. Para dejar cargada la promo del mes que viene: no se ve hasta ese día.' },
   { key: 'fin', name: 'Fecha de fin', type: 'date', description: 'Solo si la vigencia es "Termina en una fecha".' },
   { key: 'color', name: 'Color', type: 'single_line_text_field', validations: choices(['Azul', 'Verde', 'Violeta', 'Naranja', 'Rojo']) },
   { key: 'orden', name: 'Orden', type: 'number_integer', description: 'Menor número = aparece primero.' },
@@ -76,6 +92,7 @@ await definicion('samaco_banner', 'Banner de la home', 'titulo', [
   { key: 'imagen', name: 'Imagen de fondo', type: 'file_reference', validations: [{ name: 'file_type_options', value: '["Image"]' }], description: 'Horizontal, mínimo 1600 px de ancho. Si no cargás, se usa una de las imágenes por defecto.' },
   { key: 'color_etiqueta', name: 'Color de la etiqueta', type: 'single_line_text_field', validations: choices(['Azul', 'Naranja']) },
   { key: 'vigencia', name: 'Vigencia', type: 'single_line_text_field', required: true, validations: choices(VIGENCIA), description: AYUDA_VIGENCIA },
+  { key: 'inicio', name: 'Mostrar desde', type: 'date', description: 'Opcional. Para dejar cargada la promo del mes que viene: no se ve hasta ese día.' },
   { key: 'fin', name: 'Fecha de fin', type: 'date', description: 'Solo si la vigencia es "Termina en una fecha".' },
   { key: 'orden', name: 'Orden', type: 'number_integer' },
   { key: 'activo', name: 'Mostrar en el sitio', type: 'boolean' },
@@ -93,6 +110,10 @@ await definicion('samaco_sitio', 'Textos del sitio', 'nombre', [
   { key: 'cinta', name: 'Cinta superior: mensajes', type: 'list.single_line_text_field', description: 'Mensajes que corren arriba de todo (además de las promos, WhatsApp, sucursales y el Círculo). ' + AYUDA_TEXTO },
   { key: 'legal', name: 'Leyenda legal de promociones', type: 'multi_line_text_field', description: AYUDA_TEXTO },
 ]);
+
+const CAMPO_INICIO = { key: 'inicio', name: 'Mostrar desde', type: 'date', description: 'Opcional. Para dejar cargada la promo del mes que viene: no se ve hasta ese día.' };
+await asegurarCampos('samaco_promo', [CAMPO_INICIO]);
+await asegurarCampos('samaco_banner', [CAMPO_INICIO]);
 
 // ── Contenido inicial (el mismo que tiene hoy el sitio) ───────────────────────
 console.log('Entradas:');
