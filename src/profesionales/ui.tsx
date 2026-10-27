@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { WHATSAPP } from '../contacto';
 import { Award, BookOpen, CalendarDays, Clock, Lock, MapPin, Percent, Truck, UserCheck, Users } from 'lucide-react';
 import { Link } from 'react-router';
 import { paths } from '../routes';
@@ -37,8 +38,8 @@ export const formatoHora  = (iso: string) => hora.format(new Date(iso));
 
 /** Asesores comerciales por sede. TODO: reemplazar por los contactos reales de Samaco. */
 export const ASESORES: Record<Sede, { nombre: string; whatsapp: string; email: string }> = {
-  'mendoza':  { nombre: 'Asesor/a de profesionales Mendoza',  whatsapp: '5492615555555', email: 'profesionales@samacoonline.com.ar' },
-  'san-juan': { nombre: 'Asesor/a de profesionales San Juan', whatsapp: '5492645555555', email: 'profesionales.sj@samacoonline.com.ar' },
+  'mendoza':  { nombre: 'Asesor/a de profesionales Mendoza',  whatsapp: WHATSAPP, email: 'profesionales@samacoonline.com.ar' },
+  'san-juan': { nombre: 'Asesor/a de profesionales San Juan', whatsapp: WHATSAPP, email: 'profesionales.sj@samacoonline.com.ar' },
 };
 
 export function SedeFiltro({ value, onChange }: { value: Sede | 'todas'; onChange: (s: Sede | 'todas') => void }) {

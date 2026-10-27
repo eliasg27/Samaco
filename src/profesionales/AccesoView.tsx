@@ -276,7 +276,7 @@ function FormRegistro({ ir }: { ir: (v: View) => void }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div {...marca('telefono')}>
           <Campo label="Teléfono WhatsApp *" error={errores.telefono}>
-            <input type="tel" autoComplete="tel" placeholder="261 555 0000" value={f.telefono} onChange={e => set('telefono', e.target.value)} className={inputCls} />
+            <input type="tel" autoComplete="tel" placeholder="261 123 4567" value={f.telefono} onChange={e => set('telefono', e.target.value)} className={inputCls} />
           </Campo>
         </div>
         <div {...marca('email')}>

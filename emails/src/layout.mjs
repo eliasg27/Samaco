@@ -4,7 +4,7 @@
 export const SITIO = 'https://samaco-phi.vercel.app'; // Cambiar por el dominio definitivo.
 export const LOGO = `${SITIO}/logo-samaco-blanco-mail.png`;
 export const LOGO_CPS = `${SITIO}/cps/cps-horizontal-blanco-mail.png`;
-export const WHATSAPP = '5492615555555'; // Pendiente: número real de Samaco.
+export const WHATSAPP = '5492617231255'; // Bot de atención de Samaco (mismo que src/contacto.ts).
 export const MAIL_VENTAS = 'ventas@samacoonline.com.ar';
 
 export const color = {

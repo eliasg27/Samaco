@@ -25,6 +25,7 @@ import { CarruselMediosPago } from './financiacion/CarruselMediosPago';
 import { FinanciacionView } from './financiacion/FinanciacionView';
 import { conVigencia, descuentoTransferencia } from './financiacion/data';
 import { useContenido } from './contenido';
+import { WHATSAPP, WHATSAPP_VISIBLE, waLink } from './contacto';
 
 // ─────────────────────────────────────────────
 // CONSTANTS
@@ -44,8 +45,8 @@ const SUCURSALES = [
   {
     id: 'central',
     name: 'Casa Central',
-    address: 'Av. San Martín 1234, Godoy Cruz',
-    phone: '(0261) 555-0001',
+    address: 'Ciudad de Mendoza',
+    phone: WHATSAPP_VISIBLE,
     hours: 'Lun–Vie 8:00–18:00 / Sáb 8:00–13:00',
     email: 'central@samacoonline.com.ar',
     mapUrl: 'https://maps.app.goo.gl/67mCwa9A3cpLL5P7A',
@@ -57,8 +58,8 @@ const SUCURSALES = [
   {
     id: 'lujan',
     name: 'Luján de Cuyo',
-    address: 'Acceso Sur km 12.5, Luján de Cuyo',
-    phone: '(0261) 555-0002',
+    address: 'Acceso Sur (lateral este), Carrodilla, Luján de Cuyo',
+    phone: WHATSAPP_VISIBLE,
     hours: 'Lun–Vie 8:00–18:00 / Sáb 8:00–13:00',
     email: 'lujan@samacoonline.com.ar',
     mapUrl: 'https://maps.app.goo.gl/MVVnYhWcSxibKigC9',
@@ -70,8 +71,8 @@ const SUCURSALES = [
   {
     id: 'instalaciones',
     name: 'Samaco Instalaciones',
-    address: 'Mitre 890, Ciudad de Mendoza',
-    phone: '(0261) 555-0004',
+    address: 'Mayor Drummond, Luján de Cuyo',
+    phone: WHATSAPP_VISIBLE,
     hours: 'Lun–Vie 8:00–18:00 / Sáb 9:00–13:00',
     email: 'instalaciones@samacoonline.com.ar',
     mapUrl: 'https://maps.app.goo.gl/U5KZ17fJMqZrybPK8',
@@ -320,7 +321,7 @@ const MiniCart = ({ isOpen, onClose, cartItems, onUpdate, onRemove }: MiniCartPr
                   <p role="alert" className="text-[11px] text-center text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">{checkoutError}</p>
                 )}
                 <a
-                  href={`https://wa.me/5492615555555?text=${encodeURIComponent(
+                  href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(
                     'Hola Samaco! Quiero consultar disponibilidad y coordinar entrega:\n\n' +
                     cartItems.map(i => `• ${i.product.name} (x${i.quantity}) — ${fmt(i.product.cashPrice * i.quantity)}`).join('\n') +
                     `\n\nTotal estimado: ${fmt(total)}\n\n¿Pueden confirmar stock?`
@@ -393,7 +394,7 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
     ...contenido.cinta.map(label => ({ label: conVigencia(label), icon: <span className="w-1.5 h-1.5 rounded-full bg-[#E8593C] animate-pulse" /> })),
     ...(promo9 ? [{ label: `${promo9.titulo} todos los días`, icon: <CreditCard className="w-3 h-3" />, onClick: () => navigateTo('financiacion') }] : []),
     ...(transf ? [{ label: `${transf}% OFF con transferencia`, onClick: () => navigateTo('financiacion') }] : []),
-    { label: 'WhatsApp atención', icon: <Phone className="w-3 h-3" />, href: 'https://wa.me/5492615555555' },
+    { label: 'WhatsApp atención', icon: <Phone className="w-3 h-3" />, href: waLink() },
     { label: '3 sucursales en Mendoza', icon: <MapPin className="w-3 h-3" />, onClick: () => navigateTo('sucursales') },
     { label: 'Círculo de Profesionales', icon: <BadgeCheck className="w-3 h-3" />, onClick: () => navigateTo('profesionales') },
   ];
@@ -650,7 +651,7 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
                 </button>
               </div>
               <div className="border-t border-slate-100 p-5">
-                <a href="https://wa.me/5492615555555" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm font-semibold text-[#25D366]">
+                <a href={waLink()} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm font-semibold text-[#25D366]">
                   <Phone className="w-4 h-4" />WhatsApp atención
                 </a>
               </div>
@@ -732,11 +733,11 @@ const Footer = ({ navigateTo }: { navigateTo: (v: View, p?: Product, c?: string)
       <div>
         <h4 className="font-black text-sm uppercase tracking-widest mb-5 text-slate-300">Contacto</h4>
         <ul className="space-y-3 text-sm mb-5">
-          <li className="flex items-start gap-2.5 text-slate-400"><Phone className="w-4 h-4 mt-0.5 text-[#E8593C] shrink-0" />(0261) 555-0000</li>
+          <li className="flex items-start gap-2.5 text-slate-400"><Phone className="w-4 h-4 mt-0.5 text-[#E8593C] shrink-0" />{WHATSAPP_VISIBLE} (WhatsApp)</li>
           <li className="flex items-start gap-2.5 text-slate-400"><Mail  className="w-4 h-4 mt-0.5 text-[#E8593C] shrink-0" />ventas@samacoonline.com.ar</li>
           <li className="flex items-start gap-2.5 text-slate-400"><Clock className="w-4 h-4 mt-0.5 text-[#E8593C] shrink-0" /><span>Lun–Vie 8:00–18:00<br />Sáb 8:00–13:00</span></li>
         </ul>
-        <a href="https://wa.me/5492615555555" target="_blank" rel="noreferrer"
+        <a href={waLink()} target="_blank" rel="noreferrer"
           className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#1ebe58] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors">
           <Phone className="w-4 h-4" />Escribinos por WhatsApp
         </a>
@@ -998,7 +999,7 @@ function HomeView({ ctx }: { ctx: AppCtx }) {
           <h2 className="text-2xl md:text-3xl font-black mb-3">¿Necesitás asesoramiento especializado?</h2>
           <p className="text-slate-300 mb-8 leading-relaxed">Nuestros expertos te ayudan a elegir los mejores materiales para tu obra. Respondemos en minutos.</p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <a href="https://wa.me/5492615555555" target="_blank" rel="noreferrer"
+            <a href={waLink()} target="_blank" rel="noreferrer"
               className="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1ebe58] text-white font-black py-4 px-8 rounded-2xl transition-colors text-sm shadow-xl">
               <Phone className="w-5 h-5" />Chatear por WhatsApp
             </a>
@@ -1265,7 +1266,7 @@ function ProductDetailView({ product, ctx, quantity, setQuantity, activeTab, set
     ...(product.specs ?? []),
   ].filter(s => s.value);
 
-  const waConsulta = `https://wa.me/5492615555555?text=${encodeURIComponent(`Hola Samaco! Quiero consultar por: ${product.name} (código ${product.sku}).`)}`;
+  const waConsulta = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hola Samaco! Quiero consultar por: ${product.name} (código ${product.sku}).`)}`;
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -1767,7 +1768,7 @@ function SucursalesView({ ctx }: { ctx: AppCtx }) {
                     className="flex-1 flex items-center justify-center gap-2 bg-[#1B4F8C] hover:bg-[#163f70] text-white font-bold py-3 px-5 rounded-xl text-sm transition-colors">
                     <Navigation className="w-4 h-4" />Cómo llegar
                   </a>
-                  <a href={`https://wa.me/5492615555555?text=${encodeURIComponent(`Hola! Me interesa visitar ${active.name}. ¿Podría darme más información?`)}`}
+                  <a href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hola! Me interesa visitar ${active.name}. ¿Podría darme más información?`)}`}
                     target="_blank" rel="noreferrer"
                     className="flex-1 flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1ebe58] text-white font-bold py-3 px-5 rounded-xl text-sm transition-colors">
                     <Phone className="w-4 h-4" />WhatsApp
@@ -2148,7 +2149,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* WhatsApp FAB */}
-      <a href="https://wa.me/5492615555555" target="_blank" rel="noreferrer"
+      <a href={waLink()} target="_blank" rel="noreferrer"
         aria-label="Contactar por WhatsApp"
         className="fixed bottom-6 right-6 z-[99] bg-[#25D366] hover:bg-[#1ebe58] text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 border-4 border-white group">
         <Phone className="w-6 h-6 fill-current" />
