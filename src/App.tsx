@@ -3,7 +3,7 @@ import {
   Search, ShoppingCart, Heart, User, ChevronRight, ChevronLeft, ChevronDown,
   Truck, Package, Plus, Minus, Check, Clock, CreditCard, Building2,
   Star, ArrowRight, Menu, X, Phone, MapPin, Mail, Info, Trash2,
-  Shield, Instagram, Facebook, Twitter, Archive, Zap, Calculator,
+  Shield, Instagram, Facebook, Linkedin, Archive, Zap, Calculator,
   Layers, Navigation, BadgeCheck, LogOut,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -48,7 +48,7 @@ const SUCURSALES = [
     phone: '(0261) 555-0001',
     hours: 'Lun–Vie 8:00–18:00 / Sáb 8:00–13:00',
     email: 'central@samacoonline.com.ar',
-    mapUrl: 'https://maps.google.com/?q=Godoy+Cruz,+Mendoza,+Argentina',
+    mapUrl: 'https://maps.app.goo.gl/67mCwa9A3cpLL5P7A',
     icon: '🏢',
     color: 'bg-[#1B4F8C]',
     description: 'Sede principal con el mayor showroom y stock. Equipo de asesores técnicos especializados.',
@@ -61,7 +61,7 @@ const SUCURSALES = [
     phone: '(0261) 555-0002',
     hours: 'Lun–Vie 8:00–18:00 / Sáb 8:00–13:00',
     email: 'lujan@samacoonline.com.ar',
-    mapUrl: 'https://maps.google.com/?q=Lujan+de+Cuyo,+Mendoza,+Argentina',
+    mapUrl: 'https://maps.app.goo.gl/MVVnYhWcSxibKigC9',
     icon: '🏗️',
     color: 'bg-emerald-600',
     description: 'Especializada en obra gruesa y materiales pesados. Logística de entrega en zona sur.',
@@ -74,7 +74,7 @@ const SUCURSALES = [
     phone: '(0261) 555-0004',
     hours: 'Lun–Vie 8:00–18:00 / Sáb 9:00–13:00',
     email: 'instalaciones@samacoonline.com.ar',
-    mapUrl: 'https://maps.google.com/?q=Ciudad+de+Mendoza,+Argentina',
+    mapUrl: 'https://maps.app.goo.gl/U5KZ17fJMqZrybPK8',
     icon: '🔧',
     color: 'bg-[#E8593C]',
     description: 'Todo en plomería, electricidad y calefacción. Instaladores matriculados disponibles.',
@@ -666,6 +666,13 @@ const Header = ({ navigateTo, searchQuery, handleSearch, cartCount, favCount, se
 // FOOTER
 // ─────────────────────────────────────────────
 
+/** Redes oficiales de Samaco (footer). */
+const REDES = [
+  { label: 'Instagram', href: 'https://www.instagram.com/samacooficial/', Icon: Instagram },
+  { label: 'Facebook',  href: 'https://www.facebook.com/samacoOficial',   Icon: Facebook },
+  { label: 'LinkedIn',  href: 'https://www.linkedin.com/company/samaco-s-arg/', Icon: Linkedin },
+];
+
 const Footer = ({ navigateTo }: { navigateTo: (v: View, p?: Product, c?: string) => void }) => {
   const { data: categories } = useCategories();
   return (
@@ -676,8 +683,9 @@ const Footer = ({ navigateTo }: { navigateTo: (v: View, p?: Product, c?: string)
         <img src="/logo-samaco-blanco.png" alt="Samaco" width={791} height={217} className="h-9 w-auto mb-5" />
         <p className="text-slate-400 text-sm leading-relaxed mb-5">Materiales de construcción y hogar en Mendoza. Más de 5.000 productos en stock con las mejores marcas del mercado.</p>
         <div className="flex gap-3">
-          {([['Facebook', Facebook], ['Instagram', Instagram], ['Twitter', Twitter]] as const).map(([label, Icon]) => (
-            <a key={label} href="#" aria-label={label} className="w-9 h-9 bg-white/10 hover:bg-[#E8593C] rounded-xl flex items-center justify-center transition-colors">
+          {REDES.map(({ label, href, Icon }) => (
+            <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={`Samaco en ${label}`} title={label}
+              className="w-9 h-9 bg-white/10 hover:bg-[#E8593C] rounded-xl flex items-center justify-center transition-colors">
               <Icon className="w-4 h-4" />
             </a>
           ))}
@@ -702,6 +710,10 @@ const Footer = ({ navigateTo }: { navigateTo: (v: View, p?: Product, c?: string)
             <li key={s.id}>
               <p className="text-white text-sm font-bold">{s.name}</p>
               <p className="text-slate-400 text-xs mt-0.5">{s.address}</p>
+              <a href={s.mapUrl} target="_blank" rel="noreferrer" aria-label={`Cómo llegar a ${s.name} (Google Maps)`}
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#E8593C] hover:text-white transition-colors mt-1">
+                <MapPin className="w-3 h-3" />Cómo llegar
+              </a>
             </li>
           ))}
         </ul>
@@ -732,7 +744,7 @@ const Footer = ({ navigateTo }: { navigateTo: (v: View, p?: Product, c?: string)
     </div>
     <div className="border-t border-white/10">
       <div className="container mx-auto px-6 md:px-8 max-w-7xl py-5 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-500">
-        <p>© 2025 Samaco Materiales S.A. — Todos los derechos reservados</p>
+        <p>© {new Date().getFullYear()} Samaco Materiales S.A. — Todos los derechos reservados</p>
         <div className="flex gap-5 flex-wrap justify-center">
           <a href="#" className="hover:text-white transition-colors">Política de privacidad</a>
           <a href="#" className="hover:text-white transition-colors">Términos y condiciones</a>
