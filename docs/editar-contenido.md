@@ -56,6 +56,39 @@ Es cada slide del banner grande de arriba de la home.
 | **Cinta superior: mensajes** | Los mensajes que corren arriba de todo, uno por línea. Las promos, WhatsApp, sucursales y el Círculo se agregan solos. |
 | **Leyenda legal de promociones** | El texto al pie de `/financiacion`. Admite `{vigencia}`. |
 
+## Cambio de mes: procedimiento
+
+**Si las condiciones no cambian, no hay que hacer nada.** Las promos con "Se renueva cada mes" siguen solas y la leyenda pasa al último día del mes nuevo.
+
+Cuando Samaco manda una grilla nueva, hay tres caminos.
+
+### A. Cambiar el día 1 (cambios chicos: un porcentaje, una tarjeta)
+
+1. El día que empieza la promo nueva, entrar a **Contenido → Metaobjetos → Promoción de pago**.
+2. Abrir la promo y cambiar lo necesario: titular, medios incluidos, tarjetas o aclaraciones.
+3. Si cambian cuotas o descuentos, abrir sus **Planes** desde la misma promo y editarlos.
+4. Guardar. En 5 minutos se ve en el sitio.
+5. Revisar si algún **Banner de la home** menciona lo que cambió y actualizarlo.
+
+### B. Dejarlo programado unos días antes (cambio de grilla completo)
+
+1. **Cerrar el mes actual.** En cada promo y banner que cambia, poner **Vigencia: "Termina en una fecha"** y **Fecha de fin** = el último día del mes.
+2. **Cargar el mes nuevo.** En cada promo, usar el menú **⋯ → Duplicar**. En la copia:
+   - **Mostrar desde** = el día 1 del mes siguiente.
+   - **Vigencia** = "Se renueva cada mes".
+   - Cambiar titular, medios, tarjetas y aclaraciones.
+   - ⚠️ La copia usa **los mismos planes** que la original: si los editás, también cambia la promo vieja. Si cambian cuotas o descuentos, sacá los planes de la copia y agregá planes nuevos con **"Agregar plan de cuotas"**.
+3. **Promos que no existían:** **Agregar entrada**, con **Mostrar desde** = día 1.
+4. **Banners:** lo mismo que con las promos (cerrar el viejo y duplicar con "Mostrar desde").
+5. **Control:** antes del día 1 el sitio tiene que seguir mostrando el mes actual. El día 1 a la mañana, entrar a `/financiacion` y revisar.
+6. **El mes siguiente:** las entradas vencidas ya no se ven. Se pueden borrar para que la lista quede limpia.
+
+### C. Mandar la grilla a Pinta
+
+Mandar la foto o el PDF de la grilla. Pinta la deja cargada y programada, y avisa las dudas que haya en la grilla (fechas, filas repetidas, canales).
+
+**Checklist de cada grilla:** canal (presencial / web / ambos) · cuotas y % de descuento de cada plan · tarjetas incluidas (¿entró o salió alguna?) · mínimos de compra · fecha de vigencia · si cambió algo, los textos de los banners.
+
 ## Si algo sale mal
 
 Si una sección queda vacía en Shopify, por ejemplo si se borran todas las promociones, o si Shopify no responde, el sitio muestra el contenido de respaldo que está en el código. Nunca queda una sección rota.
