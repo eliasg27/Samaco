@@ -7,6 +7,16 @@ const TAGS_PERMITIDOS = new Set([
   'A', 'TABLE', 'THEAD', 'TBODY', 'TR', 'TH', 'TD', 'SPAN', 'DIV', 'IMG', 'BLOCKQUOTE',
 ]);
 const ATRIBUTOS_PERMITIDOS: Record<string, string[]> = { A: ['href', 'title'], IMG: ['src', 'alt'] };
+const ATRIBUTOS_URL = new Set(['href', 'src']);
+
+/** Solo links http(s), mailto, tel o relativos. El navegador ignora tabs y saltos dentro de "javascript:", así que se valida el protocolo ya resuelto. */
+function urlSegura(valor: string): boolean {
+  try {
+    return ['http:', 'https:', 'mailto:', 'tel:'].includes(new URL(valor, 'https://samaco.invalid').protocol);
+  } catch {
+    return false;
+  }
+}
 
 export function limpiarHtml(html: string): string {
   if (typeof DOMParser === 'undefined') return '';
@@ -23,8 +33,7 @@ export function limpiarHtml(html: string): string {
       }
       const permitidos = ATRIBUTOS_PERMITIDOS[hijo.tagName] ?? [];
       for (const attr of [...hijo.attributes]) {
-        const valor = attr.value.trim().toLowerCase();
-        if (!permitidos.includes(attr.name) || valor.startsWith('javascript:') || valor.startsWith('data:')) {
+        if (!permitidos.includes(attr.name) || (ATRIBUTOS_URL.has(attr.name) && !urlSegura(attr.value))) {
           hijo.removeAttribute(attr.name);
         }
       }
