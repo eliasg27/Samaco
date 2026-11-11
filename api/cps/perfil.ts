@@ -5,6 +5,11 @@
 import { admin, clienteLogueado, respuesta } from '../_lib/shopify.js';
 import { CAMPOS_CLIENTE, TAG_BASE, aProfesional, type ClienteAdmin } from '../_lib/cps.js';
 import { SEDES, type Profesional } from '../../src/profesionales/types.js';
+import { EVENTOS } from '../../src/profesionales/mock-data.js';
+
+/** WhatsApp: solo dígitos, espacios, +, guiones y paréntesis, con 8 a 15 dígitos. */
+const whatsappValido = (v: string) => /^[\d\s+()-]{8,30}$/.test(v) && (v.match(/\d/g)?.length ?? 0) >= 8 && (v.match(/\d/g)?.length ?? 0) <= 15;
+const ID_EVENTOS = new Set(EVENTOS.map((e) => e.id));
 
 async function leer(id: string) {
   const { customer } = await admin<{ customer: ClienteAdmin | null }>(
@@ -33,17 +38,23 @@ export async function PATCH(request: Request) {
   let cambios: Cambios;
   try { cambios = await request.json(); } catch { return respuesta(400, { error: 'datos-invalidos' }); }
 
+  if (!cambios || typeof cambios !== 'object') return respuesta(400, { error: 'datos-invalidos' });
+  if (typeof cambios.telefono === 'string' && cambios.telefono.trim() && !whatsappValido(cambios.telefono.trim())) {
+    return respuesta(400, { error: 'whatsapp-invalido' });
+  }
+
   const owner = sesion.id;
   const mf: { ownerId: string; namespace: string; key: string; type: string; value: string }[] = [];
-  const txt = (key: string, v: string) => mf.push({ ownerId: owner, namespace: 'cps', key, type: 'single_line_text_field', value: v.trim().slice(0, 200) });
-  if (typeof cambios.telefono === 'string' && cambios.telefono.trim()) txt('whatsapp', cambios.telefono);
-  if (typeof cambios.estudio === 'string' && cambios.estudio.trim()) txt('estudio', cambios.estudio);
-  if (cambios.sede && cambios.sede in SEDES) txt('sede', SEDES[cambios.sede]);
+  const txt = (key: string, v: string, max: number) => mf.push({ ownerId: owner, namespace: 'cps', key, type: 'single_line_text_field', value: v.trim().slice(0, max) });
+  if (typeof cambios.telefono === 'string' && cambios.telefono.trim()) txt('whatsapp', cambios.telefono, 30);
+  if (typeof cambios.estudio === 'string' && cambios.estudio.trim()) txt('estudio', cambios.estudio, 120);
+  if (cambios.sede && cambios.sede in SEDES) txt('sede', SEDES[cambios.sede], 60);
   if (typeof cambios.apareceEnDirectorio === 'boolean') {
     mf.push({ ownerId: owner, namespace: 'cps', key: 'directorio', type: 'boolean', value: String(cambios.apareceEnDirectorio) });
   }
   if (Array.isArray(cambios.eventosInscriptos)) {
-    const ids = cambios.eventosInscriptos.filter((x) => typeof x === 'string').slice(0, 100);
+    // Solo eventos que existen, sin repetidos.
+    const ids = [...new Set(cambios.eventosInscriptos.filter((x): x is string => typeof x === 'string' && ID_EVENTOS.has(x)))];
     mf.push({ ownerId: owner, namespace: 'cps', key: 'eventos', type: 'json', value: JSON.stringify(ids) });
   }
 

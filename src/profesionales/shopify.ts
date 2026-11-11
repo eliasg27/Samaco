@@ -18,6 +18,8 @@ const redirectUri = () => `${location.origin}/CPS/acceso`;
 
 const KEY_TOKENS = 'samaco_cps_tokens';
 const KEY_PKCE = 'samaco_cps_pkce';
+/** Solicitud de alta esperando que la persona confirme su email con el código. */
+const KEY_REGISTRO = 'samaco_cps_registro';
 
 interface Tokens { access: string; refresh?: string; idToken?: string; vence: number }
 
@@ -85,17 +87,29 @@ async function guardarCambios(cambios: Partial<Profesional>): Promise<Profesiona
   return r.body;
 }
 
+/** Envía la solicitud con la sesión iniciada (el servidor usa el email que confirmó Shopify). */
+async function enviarRegistro(input: RegistroInput): Promise<ResultadoRegistro> {
+  try {
+    const r = await api<{ ok?: boolean; error?: string }>('/api/cps/registro', { method: 'POST', body: JSON.stringify(input) });
+    return r.body.ok ? { ok: true } : { ok: false, error: r.body.error ?? 'No pudimos enviar tu solicitud.' };
+  } catch {
+    return { ok: false, error: 'No pudimos conectarnos. Revisá tu conexión y probá de nuevo.' };
+  }
+}
+
 export const shopifyProfesionales: ProfesionalesService = {
   async registrar(input: RegistroInput): Promise<ResultadoRegistro> {
-    try {
-      const res = await fetch('/api/cps/registro', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input),
-      });
-      const j = await res.json().catch(() => ({})) as { ok?: boolean; error?: string };
-      return j.ok ? { ok: true } : { ok: false, error: j.error ?? 'No pudimos enviar tu solicitud.' };
-    } catch {
-      return { ok: false, error: 'No pudimos conectarnos. Revisá tu conexión y probá de nuevo.' };
+    // Con sesión iniciada se envía directo; si no, primero se confirma el email con el código de Shopify
+    // y la solicitud sale al volver (completarIngreso).
+    if (await token()) {
+      const r = await enviarRegistro(input);
+      if ('error' in r) return r;
+      const p = await perfil();
+      return p.ok ? { ok: true, profesional: p.profesional } : { ok: true };
     }
+    try { sessionStorage.setItem(KEY_REGISTRO, JSON.stringify(input)); } catch { /* storage bloqueado */ }
+    await shopifyProfesionales.ingresar(input.email);
+    return { ok: true, redirigiendo: true };
   },
 
   async ingresar(email): Promise<ResultadoIngreso> {
@@ -130,6 +144,15 @@ export const shopifyProfesionales: ProfesionalesService = {
     const t = await pedirToken({ grant_type: 'authorization_code', code, redirect_uri: redirectUri(), code_verifier: pkce.verifier });
     if (!t) return { ok: false, error: 'Shopify no confirmó el ingreso. Probá de nuevo.' };
     guardarTokens(t);
+
+    // Venía de completar el alta: con el email ya confirmado, se envía la solicitud.
+    let pendiente: RegistroInput | null = null;
+    try { pendiente = JSON.parse(sessionStorage.getItem(KEY_REGISTRO) ?? 'null'); } catch { /* noop */ }
+    sessionStorage.removeItem(KEY_REGISTRO);
+    if (pendiente) {
+      const r = await enviarRegistro(pendiente);
+      if ('error' in r) return { ok: false, error: r.error };
+    }
     return perfil();
   },
 

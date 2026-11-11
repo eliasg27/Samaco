@@ -77,11 +77,11 @@ Club para arquitectos, ingenieros, desarrolladores inmobiliarios, constructores 
 - Vistas: `profesionales` (landing pública), `pro-ingresar` / `pro-registro` (alta con matrícula), `panel` (privado: credencial, eventos, descuentos, red, perfil).
 - Estados de membresía: `pendiente` → Samaco revisa la solicitud → `aprobado`. Los descuentos y eventos exclusivos se habilitan solo aprobado.
 - **Registro e ingreso reales con Shopify** (`shopify.ts`, elegido en `index.ts` si están `VITE_SHOPIFY_SHOP_ID` y `VITE_SHOPIFY_CUSTOMER_ACCOUNT_CLIENT_ID`; si no, demo `mock.ts` con la cuenta `demo@samaco.test`):
-  - Alta → `POST /api/cps/registro` (función de Vercel, Admin API) crea el **cliente de Shopify** con tags `cps` + `cps-pendiente` y metafields `cps.*` (textos legibles; mapeo en `api/_lib/cps.ts`).
+  - Alta → **primero se confirma el email con el código de Shopify** (el formulario queda en `sessionStorage` y se envía al volver a `/CPS/acceso`). `POST /api/cps/registro` exige ese token y usa el email verificado: marca el **cliente de Shopify** con tags `cps` + `cps-pendiente` y metafields `cps.*` (textos legibles; mapeo en `api/_lib/cps.ts`). Así nadie puede anotar el email de otra persona.
   - Samaco revisa en el admin → Clientes → segmentos **"Círculo – pendientes" / "Círculo – miembros"** y aprueba cambiando el tag a `cps-aprobado` (o `cps-rechazado`).
   - Ingreso **sin contraseña**: login de Shopify con código por email (Customer Account API, OAuth PKCE). Callback `/CPS/acceso` (registrado en Headless → Customer Account API). `GET/PATCH /api/cps/perfil` valida el token contra Shopify.
   - **Descuentos para miembros:** en Shopify, descuento automático con elegibilidad = segmento **"Círculo – miembros"** (tag `cps-aprobado`). Cualquier otro tag no matchea a nadie.
-  - El directorio (`/api/cps/directorio`) solo responde a miembros con `cps-aprobado`. El alta tiene campo trampa anti-bots y límite de pedidos por IP.
+  - El directorio (`/api/cps/directorio`) solo responde a miembros con `cps-aprobado`. El alta tiene campo trampa anti-bots, límite por IP en la función y una regla de rate limit en el Firewall de Vercel (5 POST cada 15 min por IP). `PATCH /api/cps/perfil` valida el WhatsApp y solo acepta eventos que existen.
   - Eventos, descuentos, beneficios y estudios siguen siendo datos de ejemplo.
   - `scripts/cps-setup.mjs` crea las definiciones de metafields y los segmentos (idempotente). En local, `npm run dev` sirve `api/` con un plugin de Vite.
 - Datos de ejemplo en `mock-data.ts` (eventos, estudios, descuentos, asesores en `ui.tsx`): reemplazar por los reales.

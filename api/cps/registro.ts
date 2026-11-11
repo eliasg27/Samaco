@@ -1,7 +1,9 @@
 // POST /api/cps/registro — alta al Círculo de Profesionales.
-// Crea (o completa, si ya compró antes) el cliente de Shopify con los tags `cps` + `cps-pendiente`
-// y sus datos en metafields `cps.*`. Samaco lo aprueba desde el admin cambiando el tag.
-import { admin, respuesta } from '../_lib/shopify.js';
+// Solo con el email confirmado: el navegador manda el token del login con código de Shopify (Authorization),
+// así nadie puede anotar el email de otra persona ni crear clientes falsos en cantidad.
+// Marca al cliente de Shopify con los tags `cps` + `cps-pendiente` y guarda sus datos en metafields `cps.*`.
+// Samaco lo aprueba desde el admin cambiando el tag.
+import { admin, clienteLogueado, respuesta } from '../_lib/shopify.js';
 import { excedido, ipDe } from '../_lib/limite.js';
 import { CAMPOS_CLIENTE, TAG, TAG_BASE, metafieldsRegistro, validarRegistro, type ClienteAdmin } from '../_lib/cps.js';
 import type { RegistroInput } from '../../src/profesionales/types.js';
@@ -18,32 +20,26 @@ export async function POST(request: Request) {
   // Campo trampa: los humanos no lo ven; si viene lleno es un bot. Se responde ok para no darle pistas.
   if (input.sitio_web) return respuesta(200, { ok: true });
 
-  const error = validarRegistro(input);
+  const sesion = await clienteLogueado(request.headers.get('authorization'));
+  if (!sesion?.email) return respuesta(401, { ok: false, error: 'Confirmá tu email con el código para enviar la solicitud.' });
+
+  // El email es el que Shopify verificó con el código, no el que vino escrito en el formulario.
+  const email = sesion.email.trim().toLowerCase();
+  const error = validarRegistro({ ...input, email });
   if (error) return respuesta(400, { ok: false, error });
-  const datos = input as RegistroInput;
-  const email = datos.email.trim().toLowerCase();
+  const datos = { ...input, email } as RegistroInput;
 
   try {
-    // Búsqueda exacta por email (no depende del índice de búsqueda, que tarda en actualizarse
-    // y puede devolver parecidos). Igual se confirma que el email coincida antes de tocar nada.
-    const { customerByIdentifier } = await admin<{ customerByIdentifier: ClienteAdmin | null }>(
-      `query($email: String!) { customerByIdentifier(identifier: { emailAddress: $email }) { ${CAMPOS_CLIENTE} } }`,
-      { email },
-    );
-    const existente = customerByIdentifier?.email?.trim().toLowerCase() === email ? customerByIdentifier : null;
+    // Al entrar con el código, Shopify ya creó (o encontró) el cliente de ese email.
+    const { customer: existente } = await admin<{ customer: ClienteAdmin | null }>(
+      `query($id: ID!) { customer(id: $id) { ${CAMPOS_CLIENTE} } }`, { id: sesion.id });
 
     if (existente) {
-      // El formulario es público (sin login), así que a un cliente existente nunca se le pisa nada:
-      //  - si ya pidió el alta (pendiente, aprobado o rechazado) no se toca: el estado lo maneja Samaco;
-      //  - si era cliente común (compró antes o entró con su cuenta), se le agregan los tags de solicitud
-      //    y solo los datos que le faltan (nombre vacío, metafields cps.* inexistentes).
-      // La respuesta es siempre la misma para no revelar si un email es cliente o miembro.
+      // Si ya pidió el alta (pendiente, aprobado o rechazado) no se toca: el estado lo maneja Samaco.
       if (existente.tags.includes(TAG_BASE)) return respuesta(200, { ok: true });
 
-      const yaTiene = new Set(existente.metafields.nodes.map((m) => m.key));
-      const faltantes = metafieldsRegistro(datos)
-        .filter((m) => !yaTiene.has(m.key))
-        .map((m) => ({ ...m, ownerId: existente.id }));
+      // Es su propia cuenta (email confirmado): se guardan sus datos del Círculo y, si faltaba, el nombre.
+      const metafields = metafieldsRegistro(datos).map((m) => ({ ...m, ownerId: existente.id }));
       const nombre = {
         ...(!existente.firstName?.trim() ? { firstName: datos.nombre.trim() } : {}),
         ...(!existente.lastName?.trim() ? { lastName: datos.apellido.trim() } : {}),
@@ -56,11 +52,9 @@ export async function POST(request: Request) {
         );
         if (upd.customerUpdate.userErrors.length) throw new Error(upd.customerUpdate.userErrors.map((e) => e.message).join('; '));
       }
-      if (faltantes.length) {
-        const mf = await admin<{ metafieldsSet: { userErrors: { message: string }[] } }>(
-          `mutation($m: [MetafieldsSetInput!]!) { metafieldsSet(metafields: $m) { userErrors { message } } }`, { m: faltantes });
-        if (mf.metafieldsSet.userErrors.length) throw new Error(mf.metafieldsSet.userErrors.map((e) => e.message).join('; '));
-      }
+      const mf = await admin<{ metafieldsSet: { userErrors: { message: string }[] } }>(
+        `mutation($m: [MetafieldsSetInput!]!) { metafieldsSet(metafields: $m) { userErrors { message } } }`, { m: metafields });
+      if (mf.metafieldsSet.userErrors.length) throw new Error(mf.metafieldsSet.userErrors.map((e) => e.message).join('; '));
       const tags = await admin<{ tagsAdd: { userErrors: { message: string }[] } }>(
         `mutation($id: ID!, $add: [String!]!) { tagsAdd(id: $id, tags: $add) { userErrors { message } } }`,
         { id: existente.id, add: [TAG_BASE, TAG.pendiente] });

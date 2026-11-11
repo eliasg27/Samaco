@@ -1,4 +1,4 @@
-import { Beneficio, Descuento, Estudio, Evento } from './types';
+import type { Beneficio, Descuento, Estudio, Evento } from './types';
 
 // Datos de ejemplo para desarrollo. Reemplazar por los reales de Samaco (o por metaobjects de Shopify).
 

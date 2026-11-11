@@ -236,9 +236,10 @@ function FormRegistro({ ir }: { ir: (v: View) => void }) {
       estudio: f.estudio, apareceEnDirectorio: f.apareceEnDirectorio,
     };
     const r = await registrar({ ...input, sitio_web: f.sitioWeb } as RegistroInput);
+    if ('redirigiendo' in r) return; // se va a Shopify a confirmar el email; la solicitud sale al volver
     setEnviando(false);
     if ('error' in r) setErrorGeneral(r.error);
-    else if (r.profesional) ir('panel'); // modo demo: queda logueado
+    else if (r.profesional) ir('panel'); // ya tenía la sesión iniciada (o modo demo)
     else { setEnviada(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }
   };
 
@@ -347,6 +348,12 @@ function FormRegistro({ ir }: { ir: (v: View) => void }) {
         className="w-full py-3.5 bg-[#E8593C] hover:bg-[#d14a2f] disabled:bg-slate-300 text-white font-black rounded-xl text-sm transition-colors">
         {enviando ? 'Enviando…' : 'Enviar solicitud'}
       </button>
+      {!esModoDemo && (
+        <p className="flex gap-2 text-xs text-slate-500 leading-relaxed">
+          <Mail className="w-4 h-4 shrink-0 text-[#1B4F8C]" />
+          <span>Para confirmar que el email es tuyo te mandamos un <strong>código de acceso</strong>. Al ingresarlo, tu solicitud queda enviada y entrás a tu panel.</span>
+        </p>
+      )}
     </form>
   );
 }

@@ -159,9 +159,13 @@ export type ResultadoAuth =
   /** codigo 'no-registrado': entró con su cuenta de Shopify pero nunca pidió el alta al Círculo. */
   | { ok: false; error: string; codigo?: 'no-registrado'; email?: string };
 
-/** Alta: en demo deja la sesión iniciada (trae el profesional); con Shopify queda pendiente y después se ingresa con código. */
+/**
+ * Alta: en demo deja la sesión iniciada (trae el profesional). Con Shopify primero se confirma el email
+ * con el código (redirigiendo) y la solicitud se envía al volver, ya con la sesión iniciada.
+ */
 export type ResultadoRegistro =
   | { ok: true; profesional?: Profesional }
+  | { ok: true; redirigiendo: true }
   | { ok: false; error: string };
 
 /** Ingreso: en demo es inmediato; con Shopify el navegador se va a la página de Shopify que manda el código. */
