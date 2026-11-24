@@ -3,7 +3,7 @@ import { View } from '../types';
 import {
   CINTA, LEGAL, MEDIOS_PAGO, MedioPago, PROMO_DESTACADA, PromoDestacada, Vigencia, estaVigente,
 } from '../financiacion/data';
-import { IMAGENES_BANNER } from './opciones';
+import { IMAGENES_BANNER, claveMarca } from './opciones';
 export { imagenBannerPorDefecto } from './opciones';
 
 /**
@@ -34,6 +34,8 @@ export interface Contenido {
   banners: Banner[];
   cinta: string[];
   legal: string;
+  /** Logo de cada marca (Shopify → metaobjeto "Marca"), por nombre normalizado con claveMarca(). */
+  marcas: Record<string, string>;
 }
 
 export const BANNERS: Banner[] = [
@@ -60,6 +62,7 @@ export const CONTENIDO_POR_DEFECTO: Contenido = {
   banners: BANNERS,
   cinta: CINTA,
   legal: LEGAL,
+  marcas: {},
 };
 
 /** Lo que viene de Shopify reemplaza al código solo si trae algo (una lista vacía no deja el sitio sin promos). */
@@ -70,6 +73,7 @@ function combinar(base: Contenido, remoto: Partial<Contenido>): Contenido {
     banners: remoto.banners?.length ? remoto.banners : base.banners,
     cinta: remoto.cinta?.length ? remoto.cinta : base.cinta,
     legal: remoto.legal?.trim() ? remoto.legal : base.legal,
+    marcas: remoto.marcas ?? base.marcas,
   };
 }
 
@@ -86,6 +90,12 @@ export function ContenidoProvider({ children }: { children: ReactNode }) {
     return () => { vivo = false; };
   }, []);
   return <Ctx.Provider value={contenido}>{children}</Ctx.Provider>;
+}
+
+/** Logo de la marca, o undefined si no está cargado en Shopify. */
+export function useLogoMarca(nombre: string | undefined) {
+  const { marcas } = useContext(Ctx);
+  return nombre ? marcas[claveMarca(nombre)] : undefined;
 }
 
 /** Contenido con las promos y banners vencidos ya filtrados (las mensuales nunca vencen). */

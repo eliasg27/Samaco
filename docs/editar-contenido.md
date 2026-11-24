@@ -56,6 +56,17 @@ Es cada slide del banner grande de arriba de la home.
 | **Cinta superior: mensajes** | Los mensajes que corren arriba de todo, uno por línea. Las promos, WhatsApp, sucursales y el Círculo se agregan solos. |
 | **Leyenda legal de promociones** | El texto al pie de `/financiacion`. Admite `{vigencia}`. |
 
+## Marca (logos)
+
+Es el logo que aparece en las cards del catálogo y en la ficha de producto. Una entrada por marca, con **Agregar entrada** en *Marca*:
+
+| Campo | Qué es |
+|---|---|
+| **Nombre** | Igual que el **proveedor** del producto en Shopify (ej: "Loma Negra"). No importan mayúsculas ni tildes. |
+| **Logo** | PNG con fondo transparente o SVG, horizontal. |
+
+Las marcas sin logo cargado siguen mostrando el nombre.
+
 ## Cambio de mes: procedimiento
 
 **Si las condiciones no cambian, no hay que hacer nada.** Las promos con "Se renueva cada mes" siguen solas y la leyenda pasa al último día del mes nuevo.

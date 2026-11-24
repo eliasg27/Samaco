@@ -23,8 +23,9 @@ import { EventoView } from './profesionales/EventoView';
 import { CPS_LOGO } from './profesionales/ui';
 import { CarruselMediosPago } from './financiacion/CarruselMediosPago';
 import { FinanciacionView } from './financiacion/FinanciacionView';
+import { CalculadoraCuotas, sinImpuestosNacionales } from './financiacion/simulador';
 import { conVigencia, descuentoTransferencia } from './financiacion/data';
-import { useContenido } from './contenido';
+import { useContenido, useLogoMarca } from './contenido';
 import { WHATSAPP, WHATSAPP_VISIBLE, waLink } from './contacto';
 
 // ─────────────────────────────────────────────
@@ -125,6 +126,22 @@ interface ProductCardProps {
   onToggleCompare?: (id: string) => void;
 }
 
+/** Logo de la marca (Shopify → metaobjeto "Marca"); si no está cargado, el nombre como hasta ahora. */
+const MarcaLogo = ({ marca, grande = false }: { marca: string; grande?: boolean }) => {
+  const logo = useLogoMarca(marca);
+  if (!marca) return null;
+  if (logo) {
+    return (
+      <span className={`inline-flex items-center ${grande ? 'h-10 bg-white border border-slate-200 rounded-xl px-3 py-1.5' : 'h-6'}`}>
+        <img src={logo} alt={marca} title={marca} loading="lazy" className={`h-full w-auto object-contain ${grande ? 'max-w-[140px]' : 'max-w-[96px]'}`} />
+      </span>
+    );
+  }
+  return grande
+    ? <span className="bg-[#1B4F8C]/10 text-[#1B4F8C] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">{marca}</span>
+    : <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{marca}</span>;
+};
+
 const ProductCard = ({ product, onClick, onAddToCart, isFavorite, onToggleFavorite, isComparing = false, onToggleCompare }: ProductCardProps) => (
   <motion.article
     whileHover={{ y: -4, boxShadow: '0 16px 48px rgba(0,0,0,0.12)' }}
@@ -161,21 +178,22 @@ const ProductCard = ({ product, onClick, onAddToCart, isFavorite, onToggleFavori
 
     {/* Body */}
     <div className="flex flex-col flex-1 p-4">
-      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{product.brand}</p>
+      <div className="mb-1.5 h-6 flex items-center"><MarcaLogo marca={product.brand} /></div>
       <h3 className="text-sm font-semibold text-slate-800 leading-snug line-clamp-2 mb-3 flex-1">{product.name}</h3>
       <div className="mb-3">
         <StockBadge status={product.stockStatus} />
       </div>
       <div className="mb-4 space-y-0.5">
-        <div className="text-[#E8593C] font-black text-lg leading-none">
-          {fmt(product.installmentPrice ?? 0)}
-          <span className="text-xs font-normal text-slate-400 ml-1">/ cuota</span>
+        <div className="text-emerald-600 font-black text-lg leading-none">
+          {fmt(product.cashPrice)}
+          <span className="text-xs font-normal text-slate-400 ml-1">con transferencia</span>
+          <span className="ml-1 text-[10px] text-emerald-600 font-bold">−15%</span>
         </div>
         <p className="text-[11px] text-slate-500">
-          <span className="font-semibold text-slate-700">{fmt(product.cashPrice)}</span> con transferencia
-          <span className="ml-1 text-emerald-600 font-bold">−15%</span>
+          o {product.installments} cuotas de <span className="font-semibold text-[#E8593C]">{fmt(product.installmentPrice ?? 0)}</span>
         </p>
-        <p className="text-[10px] text-slate-400 line-through">{fmt(product.listPrice)}</p>
+        <p className="text-[10px] text-slate-400">Precio de lista: {fmt(product.listPrice)}</p>
+        <p className="text-[9px] text-slate-400">Sin imp. nacionales: {fmt(sinImpuestosNacionales(product.price))}</p>
       </div>
       <div className="flex gap-2">
         <button
@@ -1322,7 +1340,7 @@ function ProductDetailView({ product, ctx, quantity, setQuantity, activeTab, set
             {/* Product info */}
             <div className="p-6 md:p-10 flex flex-col">
               <div className="flex items-center gap-2 mb-4 flex-wrap">
-                {product.brand && <span className="bg-[#1B4F8C]/10 text-[#1B4F8C] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">{product.brand}</span>}
+                <MarcaLogo marca={product.brand} grande />
                 {product.isNew && <span className="bg-[#E8593C]/10 text-[#E8593C] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">Nuevo</span>}
                 <StockBadge status={product.stockStatus} />
               </div>
@@ -1333,9 +1351,10 @@ function ProductDetailView({ product, ctx, quantity, setQuantity, activeTab, set
               <div className="bg-slate-50 rounded-2xl p-5 mb-6 border border-slate-100">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{product.installments} cuotas sin interés</p>
-                    <p className="text-3xl font-black text-[#E8593C] leading-none">
-                      {fmt(product.installmentPrice ?? 0)}<span className="text-sm font-normal text-slate-400 ml-1">/ cuota</span>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Transferencia bancaria</p>
+                    <p className="flex items-center gap-2 leading-none">
+                      <span className="text-3xl font-black text-emerald-600">{fmt(product.cashPrice)}</span>
+                      <span className="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full">−15%</span>
                     </p>
                   </div>
                   {/* CSS tooltip */}
@@ -1354,15 +1373,18 @@ function ProductDetailView({ product, ctx, quantity, setQuantity, activeTab, set
                 </div>
                 <div className="space-y-2.5 border-t border-slate-200 pt-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-slate-600 font-medium">Transferencia bancaria</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg font-black text-emerald-600">{fmt(product.cashPrice)}</span>
-                      <span className="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full">−15%</span>
-                    </div>
+                    <span className="text-sm text-slate-600 font-medium">{product.installments} cuotas sin interés</span>
+                    <span className="text-lg font-black text-[#E8593C]">
+                      {fmt(product.installmentPrice ?? 0)}<span className="text-xs font-normal text-slate-400 ml-1">/ cuota</span>
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-slate-400">Precio de lista</span>
-                    <span className="text-sm text-slate-400 line-through">{fmt(product.listPrice)}</span>
+                    <span className="text-sm text-slate-400">{fmt(product.listPrice)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-slate-400">Precio sin impuestos nacionales</span>
+                    <span className="text-xs text-slate-400">{fmt(sinImpuestosNacionales(product.price))}</span>
                   </div>
                 </div>
               </div>
@@ -1396,6 +1418,8 @@ function ProductDetailView({ product, ctx, quantity, setQuantity, activeTab, set
                   <Phone className="w-4 h-4" />{product.stockStatus === 'out_of_stock' ? 'Consultar disponibilidad' : 'Consultar'}
                 </a>
               </div>
+
+              <CalculadoraCuotas monto={product.price * quantity} />
 
               {/* Perks */}
               <div className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-5">

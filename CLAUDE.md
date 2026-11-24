@@ -57,7 +57,7 @@ React Router (`BrowserRouter`) + `vercel.json` con rewrite a `index.html`. Todas
 
 ## Contenido editable (`src/contenido/`, `api/contenido.ts`)
 
-Promociones de pago, banners de la home, cinta superior, promo destacada y leyenda legal **se editan en Shopify → Contenido → Metaobjetos** (`samaco_promo`, `samaco_plan`, `samaco_banner`, `samaco_sitio`; estructura y carga inicial con `scripts/contenido-setup.mjs`, idempotente). `GET /api/contenido` los lee con la Admin API (cache CDN 5 min) y `ContenidoProvider`/`useContenido()` los reparte; si Shopify falla o una lista viene vacía, se usa el respaldo del código (`financiacion/data.ts`, `BANNERS`). Guía para el equipo: `docs/editar-contenido.md`.
+Promociones de pago, banners de la home, cinta superior, promo destacada, leyenda legal y logos de marca **se editan en Shopify → Contenido → Metaobjetos** (`samaco_promo`, `samaco_plan`, `samaco_banner`, `samaco_sitio`, `samaco_marca`; estructura y carga inicial con `scripts/contenido-setup.mjs`, idempotente). `GET /api/contenido` los lee con la Admin API (cache CDN 5 min) y `ContenidoProvider`/`useContenido()` los reparte; si Shopify falla o una lista viene vacía, se usa el respaldo del código (`financiacion/data.ts`, `BANNERS`). Guía para el equipo: `docs/editar-contenido.md`.
 
 - **Vigencia:** `'mensual'` (default) = se renueva sola, nunca se oculta y la leyenda muestra el fin del mes en curso; una fecha `YYYY-MM-DD` = promo especial que se oculta después de ese día. `{vigencia}` en los textos se reemplaza por la fecha.
 - Opciones de los selectores (canal, tipo de plan, color, destino del botón) en `src/contenido/opciones.ts`: tienen que coincidir con las del script.
@@ -67,6 +67,8 @@ Promociones de pago, banners de la home, cinta superior, promo destacada y leyen
 - `data.ts`: tipos, helpers de vigencia y el **respaldo** de las promos (las reales viven en Shopify, ver arriba).
 - `CarruselMediosPago.tsx` (home) y la barra superior del header: cinta en loop continuo (clases `marquee` en `index.css`), pausa con hover/foco y respeta `prefers-reduced-motion`.
 - `FinanciacionView.tsx`: listado con condiciones + simulador de cuotas.
+- `simulador.tsx`: cálculo de cada plan, `CalculadoraCuotas` (ficha de producto) y `sinImpuestosNacionales` (precio sin IVA 21%, Ley 27.743).
+- **Precios en card y ficha:** primero el de transferencia, después las cuotas, el precio de lista (sin tachar) y el precio sin impuestos nacionales.
 
 ## Círculo de Profesionales (`src/profesionales/`)
 

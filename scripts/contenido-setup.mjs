@@ -7,6 +7,7 @@
 //   samaco_promo   "Promoción de pago"    (carrusel de la home y /financiacion)
 //   samaco_banner  "Banner de la home"    (slider principal)
 //   samaco_sitio   "Textos del sitio"     (una sola entrada: promo destacada, cinta superior, leyenda legal)
+//   samaco_marca   "Marca"                (logo de cada marca, se muestra en las cards de producto)
 // Los textos de las opciones tienen que coincidir con src/contenido/opciones.ts.
 import { admin } from './shopify-admin.mjs';
 
@@ -109,6 +110,11 @@ await definicion('samaco_sitio', 'Textos del sitio', 'nombre', [
   { key: 'promo_activa', name: 'Promo destacada: mostrar', type: 'boolean' },
   { key: 'cinta', name: 'Cinta superior: mensajes', type: 'list.single_line_text_field', description: 'Mensajes que corren arriba de todo (además de las promos, WhatsApp, sucursales y el Círculo). ' + AYUDA_TEXTO },
   { key: 'legal', name: 'Leyenda legal de promociones', type: 'multi_line_text_field', description: AYUDA_TEXTO },
+]);
+
+await definicion('samaco_marca', 'Marca', 'nombre', [
+  { key: 'nombre', name: 'Nombre', type: 'single_line_text_field', required: true, description: 'Igual que el proveedor del producto en Shopify (ej: "Loma Negra"). No importan mayúsculas ni tildes.' },
+  { key: 'logo', name: 'Logo', type: 'file_reference', required: true, validations: [{ name: 'file_type_options', value: '["Image"]' }], description: 'PNG con fondo transparente o SVG, horizontal. Se muestra chico en las cards de producto.' },
 ]);
 
 const CAMPO_INICIO = { key: 'inicio', name: 'Mostrar desde', type: 'date', description: 'Opcional. Para dejar cargada la promo del mes que viene: no se ve hasta ese día.' };

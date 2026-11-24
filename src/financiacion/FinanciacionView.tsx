@@ -1,33 +1,11 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { Calculator, Info, MapPin, Monitor, Sparkles } from 'lucide-react';
+import { Calculator, Info, Sparkles } from 'lucide-react';
 import { useLocation } from 'react-router';
-import { CANALES, Canal, MedioPago, Plan, conVigencia, textoVigencia } from './data';
+import { MedioPago, conVigencia, textoVigencia } from './data';
 import { useContenido } from '../contenido';
 import { LogosPago } from './logos';
-
-const fmt = (n: number) => '$' + Math.round(n).toLocaleString('es-AR');
-
-const CanalBadge = ({ canal }: { canal: Canal }) => {
-  const Icon = canal === 'sucursal' ? MapPin : Monitor;
-  return (
-    <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded-full
-      ${canal === 'sucursal' ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`}>
-      <Icon className="w-3 h-3" />{CANALES[canal]}
-    </span>
-  );
-};
-
-/** Resultado del simulador para un plan. Las cuotas fijas dependen de la tasa del emisor: no se calculan. */
-function simular(plan: Plan, monto: number) {
-  const conDescuento = monto * (1 - (plan.descuento ?? 0) / 100);
-  if (plan.tipo === 'contado') return { valor: fmt(conDescuento), detalle: plan.descuento ? `Ahorrás ${fmt(monto - conDescuento)}` : 'En un pago' };
-  if (plan.tipo === 'sin-interes') return {
-    valor: `${plan.cuotas} × ${fmt(conDescuento / plan.cuotas)}`,
-    detalle: plan.descuento ? `Total ${fmt(conDescuento)} (${plan.descuento}% OFF)` : `Total ${fmt(conDescuento)} sin interés`,
-  };
-  return { valor: `${plan.cuotas} cuotas fijas`, detalle: 'Valor de cuota según tu tarjeta' };
-}
+import { CanalBadge, simular } from './simulador';
 
 function PlanesTabla({ medio }: { medio: MedioPago }) {
   return (

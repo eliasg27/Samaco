@@ -4,7 +4,7 @@
 // Si falla, responde 503 y el sitio sigue con el contenido del código (src/financiacion/data.ts).
 import { admin, respuesta } from './_lib/shopify.js';
 import {
-  CANAL_OPCION, COLOR_ETIQUETA, COLOR_PROMO, DESTINO_OPCION, TIPO_PLAN_OPCION, VIGENCIA_OPCION, imagenBannerPorDefecto,
+  CANAL_OPCION, COLOR_ETIQUETA, COLOR_PROMO, DESTINO_OPCION, TIPO_PLAN_OPCION, VIGENCIA_OPCION, claveMarca, imagenBannerPorDefecto,
 } from '../src/contenido/opciones.js';
 import type { MedioPago, Plan, PromoDestacada, Vigencia } from '../src/financiacion/data.js';
 import type { Banner, Contenido } from '../src/contenido/index.js';
@@ -87,6 +87,17 @@ function aBanner(e: Entrada, i: number): (Banner & { orden: number }) | null {
   };
 }
 
+/** { "loma negra": "https://cdn.shopify.com/…" } — solo las marcas con logo. */
+function aMarcas(entradas: Entrada[]): Record<string, string> {
+  const marcas: Record<string, string> = {};
+  for (const e of entradas) {
+    const f = mapa(e.fields);
+    const url = f.logo?.reference?.image?.url;
+    if (texto(f.nombre) && url) marcas[claveMarca(texto(f.nombre))] = url;
+  }
+  return marcas;
+}
+
 function aDestacada(f: Record<string, Campo>): PromoDestacada | null {
   if (!visible(f.promo_activa) || !texto(f.promo_titulo)) return null;
   return {
@@ -100,13 +111,17 @@ function aDestacada(f: Record<string, Campo>): PromoDestacada | null {
 
 export async function GET() {
   try {
-    const [promos, banners, sitio] = await Promise.all([lista('samaco_promo'), lista('samaco_banner'), lista('samaco_sitio')]);
+    const [promos, banners, sitio, marcas] = await Promise.all([
+      lista('samaco_promo'), lista('samaco_banner'), lista('samaco_sitio'),
+      lista('samaco_marca').catch(() => []), // los logos son opcionales: si fallan, las cards muestran el nombre
+    ]);
     const config = sitio[0] ? mapa(sitio[0].fields) : null;
     const quitarOrden = <T extends { orden: number }>({ orden: _o, ...resto }: T) => resto;
 
     const contenido: Partial<Contenido> = {
       medios: promos.map(aMedio).filter((m): m is NonNullable<typeof m> => m !== null).sort(porOrden).map(quitarOrden),
       banners: banners.map(aBanner).filter((b): b is NonNullable<typeof b> => b !== null).sort(porOrden).map(quitarOrden),
+      marcas: aMarcas(marcas),
       ...(config ? {
         destacada: aDestacada(config),
         cinta: listaTexto(config.cinta),

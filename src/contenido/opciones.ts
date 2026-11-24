@@ -44,3 +44,7 @@ export const IMAGENES_BANNER = [
 ];
 /** Imagen por defecto para un banner cargado en Shopify sin foto. */
 export const imagenBannerPorDefecto = (i: number) => IMAGENES_BANNER[i % IMAGENES_BANNER.length];
+
+/** Clave de una marca para buscar su logo: "Loma Negra", "LOMA NEGRA" y "Lomá Negra " dan lo mismo. */
+export const claveMarca = (nombre: string) =>
+  nombre.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase().replace(/\s+/g, ' ');
